@@ -1,86 +1,187 @@
 # Aran MCP Sentinel
 
-Enterprise-Grade MCP (Model Context Protocol) Security Monitoring and Analysis Platform
+Enterprise-Grade MCP (Model Context Protocol) Security and Management Platform
+
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-181818?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ```mermaid
 graph TD
-    A[MCP Traffic] --> B{Threat Detection}
-    B -->|Malicious| C[Incident Response]
-    B -->|Benign| D[Process Request]
-    C --> E[Alerting & Logging]
-    E --> F[Remediation]
-    F --> G[Reporting & Analytics]
+    A[MCP Server Discovery] --> B[Documentation Generation]
+    B --> C[Security Testing]
+    C --> D[Risk Analysis]
+    D --> E[Remediation]
 ```
 
 ## Table of Contents
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
 - [Quick Start](#quick-start)
-- [Architecture](#architecture)
+- [API Documentation](#api-documentation)
 - [Configuration](#configuration)
 - [Development](#development)
+- [Security Best Practices](#security-best-practices)
 - [License](#license)
 
 ## Key Features
 
-### 🛡️ MCP Security & Protection
-- **MCP Server Discovery**
-  - Automated MCP endpoint discovery
-  - Comprehensive MCP server catalog with versioning
-  - Real-time MCP traffic monitoring
+### 1. MCP Catalog / Discovery
+- Automated discovery of MCP endpoints and services
+- Comprehensive catalog of available MCP servers and tools
+- Version tracking and compatibility management
+- Service health monitoring and status reporting
 
-- **Threat Detection**
-  - Advanced MCP-specific threat detection
-  - Real-time monitoring and alerting
-  - Automated incident response
+### 2. MCP Documentation
+- Interactive API documentation (similar to Swagger)
+- Tool and endpoint specifications
+- Usage examples and code snippets
+- Versioned documentation history
 
-- **Security Analysis**
-  - In-depth MCP protocol analysis
-  - Vulnerability scanning
-  - Compliance reporting
+### 3. MCP Secure Testing
+- Comprehensive test suite for MCP implementations
+- Automated security scanning
+- Integration with CI/CD pipelines
+- Test case management and reporting
+
+### 4. MCP Security Analysis
+- Real-time security monitoring
+- Vulnerability assessment
+- Compliance checking
+- Risk scoring and prioritization
+
+### 5. MCP Secure Deployment
+- Secure configuration templates
+- Deployment best practices
+- Environment validation
+- Rollback and recovery procedures
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript
+### Backend
+- **Language**: Go 1.21+
+- **Web Framework**: Gin
+- **Database**: PostgreSQL (via Supabase)
+- **Authentication**: JWT
+- **Logging**: Zap
+- **Configuration**: Viper
+- **Testing**: Go Test
+- **Containerization**: Docker
+
+### Frontend (Planned)
+- **Framework**: Next.js 14 (App Router)
+- **UI Library**: React 18 + TypeScript
 - **Styling**: Tailwind CSS
-- **State Management**: React Context + Hooks
-- **Validation**: Zod
-- **Testing**: Jest, React Testing Library
-- **Build Tool**: Vite
+- **State Management**: React Query
+- **Form Handling**: React Hook Form + Zod
+
+### Infrastructure
+- **Database**: Supabase (PostgreSQL)
+- **Deployment**: Docker, Kubernetes
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus, Grafana (Planned)
+
+## Security Best Practices
+
+### Supply Chain Security
+MCP servers are composed of executable code, so users should only use MCP servers that they trust. Key considerations include:
+- **Code Signing**: All MCP components must be signed by the developer for integrity verification
+- **Build Pipeline Security**: Implement SAST (Static Application Security Testing) and SCA (Software Composition Analysis)
+- **Dependency Management**: Regular scanning and updating of all dependencies
+- **Cloud Service Verification**: Implement cryptographic server verification for cloud-hosted MCP servers
+
+### Top 10 MCP Security Risks
+
+1. **Prompt Injection**
+   - **Risk**: Malicious inputs manipulating AI behavior
+   - **Mitigation**: Implement input validation and monitoring
+
+2. **Tool Poisoning**
+   - **Risk**: Compromised tool metadata leading to malicious actions
+   - **Mitigation**: Regular validation of tool metadata
+
+3. **Privilege Abuse**
+   - **Risk**: Excessive permissions leading to unauthorized access
+   - **Mitigation**: Follow principle of least privilege
+
+4. **Tool Shadowing**
+   - **Risk**: Rogue tools mimicking legitimate services
+   - **Mitigation**: Maintain a verified registry of trusted tools
+
+5. **Indirect Prompt Injection**
+   - **Risk**: Hidden malicious instructions in external data
+   - **Mitigation**: Monitor and validate external content
+
+6. **Sensitive Data Exposure**
+   - **Risk**: Leakage of API keys and credentials
+   - **Mitigation**: Secure credential storage and access controls
+
+7. **Command/SQL Injection**
+   - **Risk**: Unauthorized command execution
+   - **Mitigation**: Input validation and parameterized queries
+
+8. **Rug Pull Attacks**
+   - **Risk**: Legitimate tools turning malicious
+   - **Mitigation**: Behavior monitoring and sandboxing
+
+9. **Denial of Wallet/Service**
+   - **Risk**: Resource exhaustion leading to service disruption
+   - **Mitigation**: Implement rate limiting and quotas
+
+10. **Authentication Bypass**
+    - **Risk**: Weak authentication mechanisms
+    - **Mitigation**: Multi-factor authentication and regular audits
 
 ## Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/aran-mcp-sentinel.git
-   cd aran-mcp-sentinel
+   git clone https://github.com/radhi1991/aran-mcp-sentinel.git
+   cd aran-mcp-sentinel/backend
    ```
 
-2. **Install dependencies**
+2. **Set up environment variables**
    ```bash
-   npm install
-   # or
-   yarn
-   # or
-   pnpm install
+   cp .env.example .env
+   # Update the environment variables in .env
    ```
 
-3. **Set up environment variables**
+3. **Install dependencies**
    ```bash
-   cp .env.example .env.local
-   # Update the environment variables in .env.local
+   go mod download
    ```
 
-4. **Run the development server**
+4. **Run database migrations**
    ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
+   # TODO: Add migration commands once set up
    ```
 
-5. **Open [http://localhost:3000](http://localhost:3000) in your browser**
+5. **Start the development server**
+   ```bash
+   go run cmd/server/main.go
+   ```
+
+6. **Verify the API is running**
+   ```bash
+   curl http://localhost:8080/api/v1/health
+   ```
+
+## API Documentation
+
+The following API endpoints are available:
+
+### MCP Servers
+- `GET /api/v1/mcp/servers` - List all MCP servers
+- `GET /api/v1/mcp/servers/:id` - Get MCP server details
+- `POST /api/v1/mcp/servers` - Add a new MCP server
+- `GET /api/v1/mcp/servers/:id/status` - Get server status
+
+### Testing
+- `POST /api/v1/mcp/tests` - Run a test against an MCP server
+- `GET /api/v1/mcp/tests/:id` - Get test results
+
+### Authentication
+*Coming soon*
 
 ## Architecture
 
