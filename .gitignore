@@ -70,6 +70,14 @@ next-env.d.ts
 out/
 build/
 
+# Go binaries
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
 # Cache
 .cache/
 .turbo/
