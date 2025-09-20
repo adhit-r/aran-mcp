@@ -21,6 +21,9 @@ func Load() (*Config, error) {
 	// Enable VIPER to read Environment Variables
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	
+	// Set environment variable prefix
+	v.SetEnvPrefix("")
 
 	// Set default values
 	setDefaults(v, Config{})
@@ -33,6 +36,8 @@ func Load() (*Config, error) {
 		} else {
 			return nil, fmt.Errorf("fatal error config file: %w", err)
 		}
+	} else {
+		fmt.Printf("Using config file: %s\n", v.ConfigFileUsed())
 	}
 
 	// Watch for changes in the config file
@@ -49,6 +54,20 @@ func Load() (*Config, error) {
 
 	// Override with environment variables if set
 	bindEnvs(v, Config{})
+	
+	// Explicitly bind environment variables
+	v.BindEnv("DB_HOST")
+	v.BindEnv("DB_PORT")
+	v.BindEnv("DB_USER")
+	v.BindEnv("DB_PASSWORD")
+	v.BindEnv("DB_NAME")
+	v.BindEnv("DB_SSL_MODE")
+	v.BindEnv("JWT_SECRET")
+	v.BindEnv("JWT_ACCESS_EXPIRY")
+	v.BindEnv("JWT_REFRESH_EXPIRY")
+	v.BindEnv("SERVER_PORT")
+	v.BindEnv("ENV")
+	v.BindEnv("LOG_LEVEL")
 
 	return &cfg, nil
 }

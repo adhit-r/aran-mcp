@@ -32,6 +32,18 @@ func NewClient() (*Client, error) {
 	}, nil
 }
 
+// NewClientWithConfig creates a new Supabase client with provided configuration
+func NewClientWithConfig(url, key string) (*Client, error) {
+	supabaseClient, err := supabase.NewClient(url, key, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Client: supabaseClient,
+	}, nil
+}
+
 // HealthCheck verifies the connection to Supabase
 func (c *Client) HealthCheck(ctx context.Context) error {
 	// Simple query to verify connection

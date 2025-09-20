@@ -29,8 +29,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const userData = await getCurrentUser();
-        setUser(userData);
+        // Bypass login for development - auto-login with mock user
+        const mockUser = {
+          id: '1',
+          name: 'Developer',
+          email: 'dev@example.com'
+        };
+        setUser(mockUser);
+        localStorage.setItem('authToken', 'mock-token');
+        
+        // Uncomment below for production authentication
+        // const userData = await getCurrentUser();
+        // setUser(userData);
       } catch (error) {
         setUser(null);
         if (pathname !== '/login') {

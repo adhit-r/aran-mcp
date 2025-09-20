@@ -22,6 +22,7 @@ graph TD
 ## Table of Contents
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
+- [Documentation](#documentation)
 - [Quick Start](#quick-start)
 - [API Documentation](#api-documentation)
 - [Configuration](#configuration)

@@ -11,8 +11,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/auth"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/config"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/database"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/supabase"
 	"go.uber.org/zap"
@@ -29,14 +32,48 @@ func main() {
 		logger.Fatal("Failed to load configuration", zap.Error(err))
 	}
 
-	// Initialize Supabase client
-	supabaseClient, err := supabase.NewClient()
+	// Initialize database connection
+	logger.Info("Database config", 
+		zap.String("host", cfg.Database.Host),
+		zap.Int("port", cfg.Database.Port),
+		zap.String("user", cfg.Database.User),
+		zap.String("dbname", cfg.Database.Name),
+		zap.String("sslmode", cfg.Database.SSLMode))
+	
+	dbConfig := database.Config{
+		Host:     cfg.Database.Host,
+		Port:     cfg.Database.Port,
+		User:     cfg.Database.User,
+		Password: cfg.Database.Password,
+		DBName:   cfg.Database.Name,
+		SSLMode:  cfg.Database.SSLMode,
+	}
+
+	dbConn, err := database.NewConnection(dbConfig, logger)
+	if err != nil {
+		logger.Fatal("Failed to connect to database", zap.Error(err))
+	}
+	defer dbConn.Close()
+
+	// Initialize repository
+	repo := database.NewRepository(dbConn.DB, logger)
+
+	// Initialize JWT manager
+	jwtConfig := auth.JWTConfig{
+		SecretKey:     cfg.JWT.SecretKey,
+		AccessExpiry:  time.Duration(cfg.JWT.AccessExpiry) * time.Minute,
+		RefreshExpiry: time.Duration(cfg.JWT.RefreshExpiry) * time.Hour,
+	}
+	jwtManager := auth.NewJWTManager(jwtConfig)
+
+	// Initialize Supabase client (for legacy compatibility)
+	supabaseClient, err := supabase.NewClientWithConfig(cfg.Supabase.URL, cfg.Supabase.Key)
 	if err != nil {
 		logger.Fatal("Failed to initialize Supabase client", zap.Error(err))
 	}
 
-	// Initialize MCP repository
-	repo := repository.NewMCPServerRepository(supabaseClient)
+	// Initialize legacy MCP repository
+	legacyRepo := repository.NewMCPServerRepository(supabaseClient)
 
 	// Initialize Gin router
 	r := gin.New()
@@ -45,7 +82,7 @@ func main() {
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
 		// Check database connection
-		if err := supabaseClient.HealthCheck(c.Request.Context()); err != nil {
+		if err := dbConn.HealthCheck(c.Request.Context()); err != nil {
 			c.JSON(http.StatusServiceUnavailable, gin.H{
 				"status":  "unhealthy",
 				"message": "Database connection failed",
@@ -62,11 +99,24 @@ func main() {
 	// API v1 routes
 	api := r.Group("/api/v1")
 	{
-		// MCP endpoints
-		mcpGroup := api.Group("/mcp")
-		// Initialize MCP handler with repository
-		mcpHandler := mcp.NewHandler(logger, repo)
-		mcpHandler.RegisterRoutes(mcpGroup)
+		// Authentication endpoints (no auth required)
+		authHandler := auth.NewAuthHandler(repo, jwtManager, logger)
+		authHandler.RegisterRoutes(api)
+
+		// Protected routes (require authentication)
+		protected := api.Group("/")
+		protected.Use(auth.AuthMiddleware(jwtManager, logger))
+		{
+			// MCP endpoints
+			mcpGroup := protected.Group("/mcp")
+			// Initialize MCP handler with repository
+			mcpHandler := mcp.NewHandler(logger, legacyRepo)
+			mcpHandler.RegisterRoutes(mcpGroup)
+
+			// Monitoring endpoints
+			monitoringHandler := monitoring.NewHandler(repo, logger)
+			monitoringHandler.RegisterRoutes(protected)
+		}
 	}
 
 	// Create HTTP server
@@ -85,6 +135,14 @@ func main() {
 			logger.Fatal("Server error", zap.Error(err))
 		}
 	}()
+
+	// Start periodic health checks
+	healthChecker := monitoring.NewHealthChecker(repo, logger)
+	healthCtx, healthCancel := context.WithCancel(context.Background())
+	defer healthCancel()
+	
+	go healthChecker.StartPeriodicHealthChecks(healthCtx, 30*time.Second)
+	logger.Info("Started periodic health checks", zap.Duration("interval", 30*time.Second))
 
 	// Wait for interrupt signal to gracefully shut down the server
 	quit := make(chan os.Signal, 1)

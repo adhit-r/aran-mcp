@@ -25,6 +25,26 @@ yarn-error.log*
 # Local env files
 .env*.local
 .env
+.env.*
+!.env.example
+
+# Configuration files with secrets
+config.yaml
+config.yaml.local
+config.yml
+config.json
+!config.example.yaml
+!config.example.yml
+!config.example.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs with potential sensitive data
+*.log
+logs/
 
 # Vercel
 .vercel
@@ -90,3 +110,6 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+archive/

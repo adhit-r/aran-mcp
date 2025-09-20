@@ -1,7 +1,6 @@
 'use client';
 
-import { Moon, Sun, User, LogOut } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { User, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -15,9 +14,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/auth-context';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
-  const { setTheme } = useTheme();
   const { user, logout } = useAuth();
 
   const handleLogout = async () => {
@@ -39,61 +38,42 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 glass-header px-4 md:px-6">
       <div className="flex items-center gap-2 md:gap-4">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">MCP Sentinel</h1>
+          <h1 className="text-lg font-semibold text-white/90">MCP Sentinel</h1>
         </Link>
       </div>
       <div className="flex flex-1 items-center justify-end gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme('light')}>
-              Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('dark')}>
-              Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('system')}>
-              System
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ThemeToggle />
 
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-2xl glass-button">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>{getUserInitials(user.name)}</AvatarFallback>
+                  <AvatarFallback className="bg-white/20 text-white/90 rounded-xl">{getUserInitials(user.name)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-56 glass-card border-white/20 rounded-2xl" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-sm font-medium leading-none text-white/90">{user.name}</p>
+                  <p className="text-xs leading-none text-white/60">
                     {user.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+              <DropdownMenuSeparator className="bg-white/20" />
+              <DropdownMenuItem asChild className="text-white/80 hover:bg-white/10 rounded-xl">
                 <Link href="/profile" className="w-full">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuSeparator className="bg-white/20" />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:bg-red-500/20 rounded-xl">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

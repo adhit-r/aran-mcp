@@ -1,0 +1,18 @@
+{
+  "name": "aran-mcp-filesystem-server",
+  "version": "1.0.0",
+  "description": "Real MCP Filesystem Server for Aran MCP Sentinel",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "zod": "^3.22.4"
+  },
+  "keywords": ["mcp", "filesystem", "server"],
+  "author": "Aran MCP Sentinel",
+  "license": "MIT"
+}

@@ -1,274 +1,209 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useServers, useAllServerStatuses } from '@/hooks/use-servers';
-import { useServerActions } from '@/hooks/use-server-actions';
-import { BarChart } from '@/components/charts/bar-chart';
-import { LineChartComponent as LineChart } from '@/components/charts/line-chart';
-import { Icons } from '@/components/icons';
-import { ProtectedRoute } from '@/components/auth/protected-route';
-import { ServerStatus, MCPServer } from '@/types';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ServerForm } from '@/components/servers/server-form';
-import { ServerTable } from '@/components/servers/server-table';
-import { RecentAlerts } from '@/components/alerts/recent-alerts';
+import { Icons } from '@/components/icons';
+import { RealServerForm } from '@/components/servers/real-server-form';
 
-function DashboardContent() {
-  const { data: servers = [], isLoading: isLoadingServers, refetch: refetchServers } = useServers();
-  const { data: statuses = [], isLoading: isLoadingStatuses, refetch: refetchStatuses } = useAllServerStatuses();
-  const { removeServer } = useServerActions();
-  const [activeTab, setActiveTab] = useState<'overview' | 'servers' | 'alerts'>('overview');
+interface MCPServer {
+  id: string;
+  name: string;
+  url: string;
+  description: string;
+  type: string;
+  status: 'online' | 'offline' | 'error';
+  lastChecked: string;
+  responseTime: number;
+  version: string;
+  capabilities: string[];
+}
+
+export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAddServerOpen, setIsAddServerOpen] = useState(false);
-  
-  // Filter servers based on search query
-  const filteredServers = servers.filter((server) => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      server.name?.toLowerCase().includes(searchLower) ||
-      (server.url ? server.url.toLowerCase().includes(searchLower) : false)
-    );
-  });
+  const [servers, setServers] = useState<MCPServer[]>([]);
+  const [showAddServer, setShowAddServer] = useState(false);
 
-  // Prepare data for charts
-  const serverStatusData = [
-    { 
-      name: 'Status', 
-      Online: statuses.filter((s: ServerStatus) => s.status === 'online').length, 
-      Offline: statuses.filter((s: ServerStatus) => s.status === 'offline').length, 
-      Error: statuses.filter((s: ServerStatus) => s.status === 'error').length 
-    },
-  ];
+  useEffect(() => {
+    // Load servers from localStorage
+    const savedServers = JSON.parse(localStorage.getItem('mcp-servers') || '[]');
+    setServers(savedServers);
+  }, []);
 
-  const responseTimeData = statuses.map((status: ServerStatus) => ({
-    name: status.serverId.substring(0, 8),
-    'Response Time (ms)': status.responseTime || 0,
-  }));
-
-  const lineChartData = {
-    data: responseTimeData,
-    lines: [
-      { dataKey: 'Response Time (ms)', stroke: '#3b82f6', name: 'Response Time' },
-    ],
+  const handleServerAdded = () => {
+    // Reload servers from localStorage
+    const savedServers = JSON.parse(localStorage.getItem('mcp-servers') || '[]');
+    setServers(savedServers);
+    setShowAddServer(false);
   };
-
-  const barChartData = {
-    data: serverStatusData,
-    bars: [
-      { dataKey: 'Online', fill: '#10b981', name: 'Online' },
-      { dataKey: 'Offline', fill: '#ef4444', name: 'Offline' },
-      { dataKey: 'Error', fill: '#f59e0b', name: 'Error' },
-    ]
-  };
-  
-  // Cast the servers to the expected type
-  const typedServers = servers as unknown as Array<MCPServer & { host: string; port: number; createdAt?: string; updatedAt?: string }>;
-
-  const handleRefresh = useCallback(async () => {
-    await Promise.all([
-      refetchServers(),
-      refetchStatuses()
-    ]);
-  }, [refetchServers, refetchStatuses]);
-  
-  const handleServerAdded = useCallback(() => {
-    setIsAddServerOpen(false);
-    refetchServers();
-  }, [refetchServers]);
-  
-  const handleServerRemoved = useCallback(async (id: string) => {
-    await removeServer(id);
-    refetchServers();
-  }, [removeServer, refetchServers]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
+        <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white/90">Dashboard</h2>
+        <div className="flex items-center space-x-3">
           <div className="relative">
-            <Icons.search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Icons.search className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-white/60" />
             <Input
               type="search"
               placeholder="Search servers..."
-              className="pl-8 sm:w-[300px]"
+              className="pl-10 sm:w-[300px] glass-input text-gray-900 dark:text-white/90 placeholder:text-gray-500 dark:placeholder:text-white/50"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon" onClick={handleRefresh}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="glass-button border-gray-200 dark:border-white/20 text-gray-900 dark:text-white/90 hover:bg-gray-100 dark:hover:bg-white/20"
+          >
             <Icons.refreshCw className="h-4 w-4" />
           </Button>
-          <Button onClick={() => setIsAddServerOpen(true)}>
+          <Button 
+            onClick={() => setShowAddServer(true)}
+            className="glass-button bg-gray-100 dark:bg-white/20 text-gray-900 dark:text-white/90 hover:bg-gray-200 dark:hover:bg-white/30"
+          >
             <Icons.plus className="mr-2 h-4 w-4" />
             Add Server
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="servers">Servers</TabsTrigger>
-          <TabsTrigger value="alerts">Alerts</TabsTrigger>
-        </TabsList>
+      {/* Overview Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="glass-card border-gray-200 dark:border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-white/80">Total Servers</CardTitle>
+            <Icons.server className="h-4 w-4 text-gray-500 dark:text-white/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white/90">{servers.length}</div>
+            <p className="text-xs text-gray-500 dark:text-white/60">
+              {servers.filter(s => s.status === 'online').length} online
+            </p>
+          </CardContent>
+        </Card>
         
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Servers</CardTitle>
-                <Icons.server className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{servers.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {statuses.filter(s => s.status === 'online').length} online
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Alerts</CardTitle>
-                <Icons.alertCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">
-                  3 unread alerts
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg. Response Time</CardTitle>
-                <Icons.clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {statuses.length > 0 
-                    ? (statuses.reduce((acc, curr) => acc + (curr.responseTime || 0), 0) / statuses.length).toFixed(2) 
-                    : '0'} ms
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Last updated: Just now
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Uptime (24h)</CardTitle>
-                <Icons.activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">99.95%</div>
-                <p className="text-xs text-muted-foreground">
-                  +0.1% from yesterday
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="col-span-4">
-              <CardHeader>
-                <CardTitle>Server Status</CardTitle>
-              </CardHeader>
-              <CardContent className="pl-2">
-                <BarChart 
-                  data={barChartData.data}
-                  bars={barChartData.bars}
-                />
-              </CardContent>
-            </Card>
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle>Response Times</CardTitle>
-                <CardDescription>Average response time by server</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LineChart 
-                  data={lineChartData.data}
-                  lines={lineChartData.lines}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="servers" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>MCP Servers</CardTitle>
-              <CardDescription>
-                Manage your MCP servers and monitor their status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ServerTable 
-                servers={typedServers.filter(s => 
-                  s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                  (s.host ? s.host.toLowerCase().includes(searchQuery.toLowerCase()) : false)
-                )} 
-                statuses={statuses}
-                onRemove={handleServerRemoved}
-                isLoading={isLoadingServers || isLoadingStatuses}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="alerts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Recent Alerts</CardTitle>
-                  <CardDescription>
-                    View and manage your server alerts
-                  </CardDescription>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={handleRefresh}>
-                    <Icons.refreshCw className="mr-2 h-4 w-4" />
-                    Refresh
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Icons.filter className="mr-2 h-4 w-4" />
-                    Filter
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RecentAlerts />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <div className="fixed bottom-6 right-6">
-        <ServerForm onSuccess={handleServerAdded}>
-          <Button 
-            className="rounded-full w-12 h-12 p-0 flex items-center justify-center"
-            onClick={() => setIsAddServerOpen(true)}
-          >
-            <Icons.plus className="h-6 w-6" />
-            <span className="sr-only">Add Server</span>
-          </Button>
-        </ServerForm>
+        <Card className="glass-card border-gray-200 dark:border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-white/80">Alerts</CardTitle>
+            <Icons.alertCircle className="h-4 w-4 text-gray-500 dark:text-white/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white/90">0</div>
+            <p className="text-xs text-gray-500 dark:text-white/60">
+              0 unread alerts
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass-card border-gray-200 dark:border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-white/80">Avg. Response Time</CardTitle>
+            <Icons.clock className="h-4 w-4 text-gray-500 dark:text-white/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white/90">0 ms</div>
+            <p className="text-xs text-gray-500 dark:text-white/60">
+              Last updated: Just now
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass-card border-gray-200 dark:border-white/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700 dark:text-white/80">Uptime (24h)</CardTitle>
+            <Icons.activity className="h-4 w-4 text-gray-500 dark:text-white/60" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white/90">100%</div>
+            <p className="text-xs text-gray-500 dark:text-white/60">
+              +0% from yesterday
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </div>
-  );
-}
 
-export default function DashboardPage() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
+      {/* Welcome Message */}
+      <Card className="glass-card border-gray-200 dark:border-white/20">
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-white/90">Welcome to MCP Sentinel</CardTitle>
+          <CardDescription className="text-gray-600 dark:text-white/60">
+            Your organization has been set up successfully. Start by adding your first MCP server.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Icons.server className="h-16 w-16 text-gray-400 dark:text-white/40 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white/90 mb-2">
+              No servers configured yet
+            </h3>
+            <p className="text-gray-600 dark:text-white/60 mb-4">
+              Add your first MCP server to start monitoring and managing your infrastructure.
+            </p>
+            <Button 
+              className="glass-button bg-gray-100 dark:bg-white/20 text-gray-900 dark:text-white/90 hover:bg-gray-200 dark:hover:bg-white/30"
+            >
+              <Icons.plus className="mr-2 h-4 w-4" />
+              Add Your First Server
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Server List */}
+      {servers.length > 0 && (
+        <Card className="glass-card border-gray-200 dark:border-white/20">
+          <CardHeader>
+            <CardTitle className="text-gray-900 dark:text-white/90">MCP Servers</CardTitle>
+            <CardDescription className="text-gray-600 dark:text-white/60">
+              Your connected MCP servers and their status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {servers.map((server) => (
+                <div key={server.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-white/20 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className={`h-3 w-3 rounded-full ${
+                      server.status === 'online' ? 'bg-green-500' : 
+                      server.status === 'offline' ? 'bg-red-500' : 'bg-yellow-500'
+                    }`} />
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white/90">{server.name}</h4>
+                      <p className="text-sm text-gray-600 dark:text-white/60">{server.url}</p>
+                      <p className="text-xs text-gray-500 dark:text-white/50">
+                        {server.capabilities.length} capabilities • {server.responseTime}ms response time
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white/90 capitalize">
+                      {server.status}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-white/50">
+                      v{server.version}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Add Server Modal */}
+      {showAddServer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-2xl">
+            <RealServerForm 
+              onSuccess={handleServerAdded}
+              onCancel={() => setShowAddServer(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
