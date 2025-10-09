@@ -1,18 +1,43 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Space_Grotesk } from 'next/font/google';
 import { ClientLayout } from './client-layout';
-import { Header } from '@/components/header';
-import { NavBar } from '@/components/nav';
 import { Toaster } from 'sonner';
-import { AuthProvider } from '@/contexts/auth-context';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ErrorBoundary } from '@/components/error-boundary';
+import { AuthProvider } from '@/contexts/auth-context';
 import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'], 
+  variable: '--font-display',
+  weight: ['300', '400', '500', '600', '700']
+});
 
 export const metadata: Metadata = {
   title: 'MCP Sentinel',
-  description: 'Monitor and manage your MCP servers',
+  description: 'Advanced MCP server monitoring and management platform',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'MCP Sentinel',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.ico',
+    apple: '/icon-192.png',
+  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#3b82f6',
 };
 
 export default function RootLayout({
@@ -22,37 +47,34 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} min-h-screen font-sans antialiased`} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-              <AuthProvider>
-                <ClientLayout>
-                  <div className="relative min-h-screen flex">
-                    <NavBar />
-                    <div className="flex flex-col flex-1 ml-[240px] min-h-screen pl-6">
-                      <Header />
-                      <main className="flex-1 p-6">
-                        <div className="max-w-7xl mx-auto">
-                          {children}
-                        </div>
-                      </main>
-                      <footer className="glass-card border-t border-white/20 py-6 md:py-0 mx-6 mb-6 rounded-2xl">
-                        <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
-                          <p className="text-center text-sm leading-loose text-white/60 md:text-left">
-                            MCP Sentinel &copy; {new Date().getFullYear()}
-                          </p>
-                        </div>
-                      </footer>
-                    </div>
-                  </div>
-                  <Toaster position="top-right" richColors />
-                </ClientLayout>
-              </AuthProvider>
-        </ThemeProvider>
+        <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="theme-color" content="#3b82f6" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="MCP Sentinel" />
+          <link rel="apple-touch-icon" href="/icon-192.png" />
+        </head>
+      <body className={`${spaceGrotesk.variable} min-h-screen font-display antialiased`} suppressHydrationWarning>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ErrorBoundary>
+              <ClientLayout>
+                {children}
+                <Toaster position="top-right" richColors />
+              </ClientLayout>
+            </ErrorBoundary>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

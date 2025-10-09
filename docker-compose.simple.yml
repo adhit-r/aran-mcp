@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Your existing MCP backend
+  mcp-backend:
+    build: ./backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=mcp_sentinel
+      - DB_USER=mcp_user
+      - DB_PASSWORD=mcp_password
+      - JWT_SECRET=your-jwt-secret-change-this-in-production
+      - SUPABASE_URL=http://localhost:8000
+      - SUPABASE_KEY=your-supabase-key
+    depends_on:
+      - postgres
+    networks:
+      - mcp-network
+
+  # Your existing MCP frontend
+  mcp-frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+    depends_on:
+      - mcp-backend
+    networks:
+      - mcp-network
+
+  # Your existing PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: mcp_sentinel
+      POSTGRES_USER: mcp_user
+      POSTGRES_PASSWORD: mcp_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcp_user -d mcp_sentinel"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  mcp-network:
+    driver: bridge
+
+
+
+
+

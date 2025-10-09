@@ -1,126 +1,364 @@
 @import "tailwindcss";
 
+/* Aran Design System - New Brutalist Professional */
 @layer base {
   :root {
-    --radius: 1.25rem;
-  }
-
-  .dark {
-    --radius: 1.25rem;
+    /* Aran Design System Colors */
+    --aran-black: #000000;
+    --aran-white: #ffffff;
+    --aran-orange: #ff6b35;
+    --aran-orange-dark: #e55a2b;
+    --aran-orange-light: #ff8c69;
+    
+    /* Gray Scale */
+    --aran-gray-100: #f5f5f5;
+    --aran-gray-200: #e5e5e5;
+    --aran-gray-300: #d4d4d4;
+    --aran-gray-400: #a3a3a3;
+    --aran-gray-500: #737373;
+    --aran-gray-600: #525252;
+    --aran-gray-700: #404040;
+    --aran-gray-800: #262626;
+    --aran-gray-900: #171717;
+    
+    /* Semantic Colors */
+    --aran-success: #22c55e;
+    --aran-warning: #f59e0b;
+    --aran-error: #ef4444;
+    --aran-info: #3b82f6;
+    --aran-purple: #8b5cf6;
+    
+    /* Typography */
+    --aran-font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --aran-font-display: 'Space Grotesk', 'Inter', sans-serif;
+    --aran-font-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+    
+    /* Brutalist Shadows */
+    --aran-shadow-brutal: 4px 4px 0px 0px #000000;
+    --aran-shadow-brutal-lg: 8px 8px 0px 0px #000000;
+    --aran-shadow-brutal-sm: 2px 2px 0px 0px #000000;
+    
+    /* Border Radius - Minimal for Brutalist */
+    --aran-radius-none: 0;
+    --aran-radius-sm: 0.125rem;
+    --aran-radius-base: 0.25rem;
+    --aran-radius-md: 0.375rem;
+    --aran-radius-lg: 0.5rem;
   }
 }
 
 @layer base {
   * {
-    border-color: rgba(0, 0, 0, 0.1);
-  }
-  
-  .dark * {
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--aran-black);
   }
   
   body {
-    /* Clean glassmorphism background */
-    background: rgba(0, 0, 0, 0.05);
-    color: rgba(0, 0, 0, 0.9);
+    font-family: 'Space Grotesk', var(--aran-font-primary);
+    background: var(--aran-white);
+    color: var(--aran-black);
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    line-height: 1.5;
   }
   
-  .dark body {
-    /* Clean dark glassmorphism */
-    background: rgba(0, 0, 0, 0.8);
-    color: rgba(255, 255, 255, 0.9);
+  /* Ensure Space Grotesk is used for all headings and important text */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', var(--aran-font-display);
+    font-weight: 600;
+  }
+  
+  /* Apply to all text elements */
+  p, span, div, button, input, textarea, select {
+    font-family: 'Space Grotesk', var(--aran-font-primary);
+  }
+  
+  
+  code, pre {
+    font-family: var(--aran-font-mono);
   }
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%, 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%, 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%, 0% 50%;
-  }
-}
-
-/* Clean glassmorphism utility classes */
+/* Aran Design System Utility Classes */
 @layer utilities {
-  .glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  /* Brutalist Buttons */
+  .aran-btn-primary {
+    background: var(--aran-black);
+    color: var(--aran-white);
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    box-shadow: var(--aran-shadow-brutal);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
   }
   
-  .glass-dark {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  .aran-btn-primary:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--aran-shadow-brutal-lg);
   }
   
-  .glass-card {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 1.5rem;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  .aran-btn-secondary {
+    background: var(--aran-white);
+    color: var(--aran-black);
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    box-shadow: var(--aran-shadow-brutal);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
   }
   
-  .glass-button {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 1.25rem;
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+  .aran-btn-secondary:hover {
+    background: var(--aran-gray-100);
+    transform: translate(-2px, -2px);
+    box-shadow: var(--aran-shadow-brutal-lg);
   }
   
-  .glass-button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+  .aran-btn-accent {
+    background: var(--aran-orange);
+    color: var(--aran-white);
+    border: 2px solid var(--aran-orange);
+    border-radius: var(--aran-radius-base);
+    box-shadow: var(--aran-shadow-brutal);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    cursor: pointer;
   }
   
-  .glass-input {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 1rem;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  .aran-btn-accent:hover {
+    background: var(--aran-orange-dark);
+    transform: translate(-2px, -2px);
+    box-shadow: var(--aran-shadow-brutal-lg);
   }
   
-  .glass-input:focus {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  /* Brutalist Cards */
+  .aran-card {
+    background: var(--aran-white);
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    box-shadow: var(--aran-shadow-brutal);
+    transition: all 0.15s ease;
   }
   
-  .glass-nav {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0 1.5rem 1.5rem 0;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  .aran-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--aran-shadow-brutal-lg);
   }
   
-  .glass-header {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0 0 1.5rem 1.5rem;
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.1);
+  .aran-card-header {
+    background: var(--aran-gray-100);
+    border-bottom: 2px solid var(--aran-black);
+    padding: 1.5rem;
+    border-radius: var(--aran-radius-base) var(--aran-radius-base) 0 0;
   }
+  
+  .aran-card-content {
+    padding: 1.5rem;
+  }
+  
+  .aran-card-footer {
+    background: var(--aran-gray-100);
+    border-top: 2px solid var(--aran-black);
+    padding: 1.5rem;
+    border-radius: 0 0 var(--aran-radius-base) var(--aran-radius-base);
+  }
+  
+  /* Brutalist Inputs */
+  .aran-input {
+    background: var(--aran-white);
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.15s ease;
+  }
+  
+  .aran-input:focus {
+    border-color: var(--aran-orange);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    outline: none;
+  }
+  
+  /* Brutalist Navigation */
+  .aran-nav {
+    background: var(--aran-white);
+    border-bottom: 2px solid var(--aran-black);
+    padding: 1rem 1.5rem;
+  }
+  
+  .aran-nav-brand {
+    font-family: var(--aran-font-display);
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--aran-black);
+  }
+  
+  .aran-nav-link {
+    color: var(--aran-gray-700);
+    padding: 0.5rem 1rem;
+    border-radius: var(--aran-radius-base);
+    transition: all 0.15s ease;
+  }
+  
+  .aran-nav-link:hover {
+    color: var(--aran-black);
+    background: var(--aran-gray-100);
+  }
+  
+  .aran-nav-link.active {
+    color: var(--aran-black);
+    background: var(--aran-gray-100);
+  }
+  
+  /* Brutalist Badges */
+  .aran-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--aran-radius-base);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 2px solid var(--aran-black);
+    box-shadow: var(--aran-shadow-brutal-sm);
+  }
+  
+  .aran-badge-success {
+    background: var(--aran-success);
+    color: var(--aran-white);
+  }
+  
+  .aran-badge-warning {
+    background: var(--aran-warning);
+    color: var(--aran-white);
+  }
+  
+  .aran-badge-error {
+    background: var(--aran-error);
+    color: var(--aran-white);
+  }
+  
+  .aran-badge-info {
+    background: var(--aran-info);
+    color: var(--aran-white);
+  }
+  
+  /* Brutalist Alerts */
+  .aran-alert {
+    padding: 1rem 1.5rem;
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    box-shadow: var(--aran-shadow-brutal);
+    margin: 1rem 0;
+  }
+  
+  .aran-alert-success {
+    background: #dcfce7;
+    border-color: var(--aran-success);
+  }
+  
+  .aran-alert-warning {
+    background: #fef3c7;
+    border-color: var(--aran-warning);
+  }
+  
+  .aran-alert-error {
+    background: #fee2e2;
+    border-color: var(--aran-error);
+  }
+  
+  .aran-alert-info {
+    background: #dbeafe;
+    border-color: var(--aran-info);
+  }
+  
+  /* Brutalist Tables */
+  .aran-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 2px solid var(--aran-black);
+    border-radius: var(--aran-radius-base);
+    overflow: hidden;
+  }
+  
+  .aran-table th {
+    background: var(--aran-gray-100);
+    border-bottom: 2px solid var(--aran-black);
+    padding: 1rem;
+    font-weight: 600;
+    text-align: left;
+  }
+  
+  .aran-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--aran-gray-200);
+  }
+  
+  .aran-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Brutalist Shadows */
+  .aran-shadow-brutal {
+    box-shadow: var(--aran-shadow-brutal);
+  }
+  
+  .aran-shadow-brutal-lg {
+    box-shadow: var(--aran-shadow-brutal-lg);
+  }
+  
+  .aran-shadow-brutal-sm {
+    box-shadow: var(--aran-shadow-brutal-sm);
+  }
+  
+  /* Brutalist Transitions */
+  .aran-transition {
+    transition: all 0.15s ease;
+  }
+  
+  .aran-transition:hover {
+    transform: translate(-2px, -2px);
+  }
+}
+
+/* Aran Design System Animations */
+@keyframes aran-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes aran-slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes aran-scaleIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+.aran-animate-fadeIn {
+  animation: aran-fadeIn 0.3s ease-out;
+}
+
+.aran-animate-slideUp {
+  animation: aran-slideUp 0.3s ease-out;
+}
+
+.aran-animate-scaleIn {
+  animation: aran-scaleIn 0.2s ease-out;
 }

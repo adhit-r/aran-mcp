@@ -11,8 +11,8 @@ import (
 )
 
 type Handler struct {
-	logger    *zap.Logger
-	repo      *repository.MCPServerRepository
+	logger *zap.Logger
+	repo   *repository.MCPServerRepository
 }
 
 func NewHandler(logger *zap.Logger, repo *repository.MCPServerRepository) *Handler {
@@ -24,23 +24,30 @@ func NewHandler(logger *zap.Logger, repo *repository.MCPServerRepository) *Handl
 
 // RegisterRoutes registers all MCP API routes
 func (h *Handler) RegisterRoutes(router *gin.RouterGroup) {
-	mcpGroup := router.Group("/mcp")
+	// Server management endpoints
+	serverGroup := router.Group("/servers")
 	{
-		// Server management endpoints
-		serverGroup := mcpGroup.Group("/servers")
-		{
-			serverGroup.GET("", h.ListServers)
-			serverGroup.GET("/:id", h.GetServer)
-			serverGroup.POST("", h.CreateServer)
-			serverGroup.GET("/:id/status", h.GetServerStatus)
-		}
+		serverGroup.GET("", h.ListServers)
+		serverGroup.GET("/:id", h.GetServer)
+		serverGroup.POST("", h.CreateServer)
+		serverGroup.PUT("/:id", h.UpdateServer)
+		serverGroup.DELETE("/:id", h.DeleteServer)
+		serverGroup.GET("/:id/status", h.GetServerStatus)
+	}
 
-		// Test execution endpoints
-		testGroup := mcpGroup.Group("/tests")
-		{
-			testGroup.POST("", h.runTest)
-			testGroup.GET("/:id", h.getTestResult)
-		}
+	// Test execution endpoints
+	testGroup := router.Group("/tests")
+	{
+		testGroup.POST("", h.runTest)
+		testGroup.GET("/:id", h.getTestResult)
+	}
+
+	// Server presets endpoints
+	presetGroup := router.Group("/presets")
+	{
+		presetGroup.GET("", h.ListPresets)
+		presetGroup.GET("/:id", h.GetPreset)
+		presetGroup.GET("/category/:category", h.GetPresetsByCategory)
 	}
 }
 
@@ -103,8 +110,8 @@ func (h *Handler) GetServerStatus(c *gin.Context) {
 
 	status, err := h.repo.GetServerStatus(c.Request.Context(), id)
 	if err != nil {
-		h.logger.Error("Failed to get server status", 
-			zap.Error(err), 
+		h.logger.Error("Failed to get server status",
+			zap.Error(err),
 			zap.String("server_id", id.String()))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get server status"})
 		return
@@ -123,4 +130,96 @@ func (h *Handler) runTest(c *gin.Context) {
 func (h *Handler) getTestResult(c *gin.Context) {
 	// TODO: Implement getting test results
 	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
+}
+
+// UpdateServer updates an existing MCP server
+func (h *Handler) UpdateServer(c *gin.Context) {
+	serverID := c.Param("id")
+
+	// Parse server ID
+	id, err := uuid.Parse(serverID)
+	if err != nil {
+		h.logger.Error("Invalid server ID", zap.String("server_id", serverID), zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server ID"})
+		return
+	}
+
+	// Parse request body
+	var updateReq struct {
+		Name         string                 `json:"name"`
+		URL          string                 `json:"url"`
+		Description  string                 `json:"description"`
+		Type         string                 `json:"type"`
+		Capabilities []string               `json:"capabilities"`
+		Metadata     map[string]interface{} `json:"metadata"`
+	}
+
+	if err := c.ShouldBindJSON(&updateReq); err != nil {
+		h.logger.Error("Failed to bind update request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Update server in database
+	server := &models.MCPServer{
+		ID:           id,
+		Name:         updateReq.Name,
+		URL:          updateReq.URL,
+		Description:  updateReq.Description,
+		Type:         updateReq.Type,
+		Capabilities: updateReq.Capabilities,
+		Metadata:     updateReq.Metadata,
+	}
+
+	if err := h.repo.UpdateServer(c.Request.Context(), server); err != nil {
+		h.logger.Error("Failed to update server", zap.String("server_id", serverID), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update server"})
+		return
+	}
+
+	h.logger.Info("Server updated successfully", zap.String("server_id", serverID))
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Server updated successfully",
+		"server":  server,
+	})
+}
+
+// DeleteServer deletes an MCP server
+func (h *Handler) DeleteServer(c *gin.Context) {
+	serverID := c.Param("id")
+
+	// Parse server ID
+	id, err := uuid.Parse(serverID)
+	if err != nil {
+		h.logger.Error("Invalid server ID", zap.String("server_id", serverID), zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid server ID"})
+		return
+	}
+
+	// Check if server exists
+	server, err := h.repo.GetServerByID(id)
+	if err != nil {
+		h.logger.Error("Failed to get server", zap.String("server_id", serverID), zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
+		return
+	}
+
+	// Delete server from database
+	if err := h.repo.DeleteServer(c.Request.Context(), id); err != nil {
+		h.logger.Error("Failed to delete server", zap.String("server_id", serverID), zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete server"})
+		return
+	}
+
+	h.logger.Info("Server deleted successfully",
+		zap.String("server_id", serverID),
+		zap.String("server_name", server.Name))
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Server deleted successfully",
+		"server": gin.H{
+			"id":   server.ID,
+			"name": server.Name,
+		},
+	})
 }

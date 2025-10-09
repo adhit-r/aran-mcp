@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard API Test</h1>
+    
+    <div class="debug">
+        <h3>Current Token Status:</h3>
+        <div id="tokenStatus">Checking...</div>
+    </div>
+    
+    <div class="debug">
+        <h3>API Tests:</h3>
+        <button onclick="testYourServers()">Test Your Servers API</button>
+        <button onclick="testProductionServers()">Test Production Servers API</button>
+        <button onclick="testAll()">Test All APIs</button>
+    </div>
+    
+    <div class="debug">
+        <h3>Results:</h3>
+        <div id="results"></div>
+    </div>
+    
+    <div class="debug">
+        <h3>Console Logs:</h3>
+        <div id="consoleLogs"></div>
+    </div>
+
+    <script>
+        const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwib3JnYW5pemF0aW9uX2lkIjoiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAxIiwiZW1haWwiOiJhZG1pbkBhcmFuLW1jcC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpc3MiOiJhcmFuLW1jcC1zZW50aW5lbCIsInN1YiI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsImV4cCI6MTc1ODQzNzIwMCwibmJmIjoxNzU4NDM2MzAwLCJpYXQiOjE3NTg0MzYzMDB9.P5C2IEdnISIISBWG8cYzVVTObn60rcijvc8jBecVKzM';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('consoleLogs');
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            logDiv.appendChild(logEntry);
+            console.log(message);
+        }
+        
+        function updateResults(title, data, success) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = success ? 'success' : 'error';
+            resultDiv.innerHTML = `
+                <h4>${title}</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        async function testYourServers() {
+            log('Testing Your Servers API...');
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/monitoring/servers', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                log(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`Success! Found ${data.data?.length || 0} servers`);
+                updateResults('Your Servers API', data, true);
+                
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                updateResults('Your Servers API', { error: error.message }, false);
+            }
+        }
+        
+        async function testProductionServers() {
+            log('Testing Production Servers API...');
+            try {
+                const response = await fetch('http://localhost:8080/api/v1/mcp/mcp/production-servers', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                
+                log(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`Success! Found ${data.data?.length || 0} production servers`);
+                updateResults('Production Servers API', data, true);
+                
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+                updateResults('Production Servers API', { error: error.message }, false);
+            }
+        }
+        
+        async function testAll() {
+            log('Testing all APIs...');
+            await testYourServers();
+            await testProductionServers();
+        }
+        
+        // Initialize
+        document.getElementById('tokenStatus').innerHTML = `
+            <strong>Token:</strong> ${token ? 'Present' : 'Missing'}<br>
+            <strong>Length:</strong> ${token ? token.length : 0} characters<br>
+            <strong>Preview:</strong> ${token ? token.substring(0, 50) + '...' : 'None'}
+        `;
+        
+        log('Test page loaded');
+        log('Token available: ' + (token ? 'Yes' : 'No'));
+    </script>
+</body>
+</html>
+
+

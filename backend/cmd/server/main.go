@@ -17,6 +17,7 @@ import (
 	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/security"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/supabase"
 	"go.uber.org/zap"
 )
@@ -33,13 +34,13 @@ func main() {
 	}
 
 	// Initialize database connection
-	logger.Info("Database config", 
+	logger.Info("Database config",
 		zap.String("host", cfg.Database.Host),
 		zap.Int("port", cfg.Database.Port),
 		zap.String("user", cfg.Database.User),
 		zap.String("dbname", cfg.Database.Name),
 		zap.String("sslmode", cfg.Database.SSLMode))
-	
+
 	dbConfig := database.Config{
 		Host:     cfg.Database.Host,
 		Port:     cfg.Database.Port,
@@ -58,13 +59,7 @@ func main() {
 	// Initialize repository
 	repo := database.NewRepository(dbConn.DB, logger)
 
-	// Initialize JWT manager
-	jwtConfig := auth.JWTConfig{
-		SecretKey:     cfg.JWT.SecretKey,
-		AccessExpiry:  time.Duration(cfg.JWT.AccessExpiry) * time.Minute,
-		RefreshExpiry: time.Duration(cfg.JWT.RefreshExpiry) * time.Hour,
-	}
-	jwtManager := auth.NewJWTManager(jwtConfig)
+	// JWT manager removed - using Authelia for authentication
 
 	// Initialize Supabase client (for legacy compatibility)
 	supabaseClient, err := supabase.NewClientWithConfig(cfg.Supabase.URL, cfg.Supabase.Key)
@@ -78,6 +73,20 @@ func main() {
 	// Initialize Gin router
 	r := gin.New()
 	r.Use(gin.Recovery())
+
+	// Add CORS middleware
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
@@ -100,12 +109,13 @@ func main() {
 	api := r.Group("/api/v1")
 	{
 		// Authentication endpoints (no auth required)
-		authHandler := auth.NewAuthHandler(repo, jwtManager, logger)
+		authHandler := auth.NewAutheliaHandler(logger)
 		authHandler.RegisterRoutes(api)
 
 		// Protected routes (require authentication)
 		protected := api.Group("/")
-		protected.Use(auth.AuthMiddleware(jwtManager, logger))
+		// Use Authelia middleware for authentication
+		protected.Use(auth.AutheliaMiddleware(logger))
 		{
 			// MCP endpoints
 			mcpGroup := protected.Group("/mcp")
@@ -116,6 +126,10 @@ func main() {
 			// Monitoring endpoints
 			monitoringHandler := monitoring.NewHandler(repo, logger)
 			monitoringHandler.RegisterRoutes(protected)
+
+			// Security testing endpoints
+			securityHandler := security.NewHandler(logger)
+			securityHandler.RegisterRoutes(protected)
 		}
 	}
 
@@ -140,7 +154,7 @@ func main() {
 	healthChecker := monitoring.NewHealthChecker(repo, logger)
 	healthCtx, healthCancel := context.WithCancel(context.Background())
 	defer healthCancel()
-	
+
 	go healthChecker.StartPeriodicHealthChecks(healthCtx, 30*time.Second)
 	logger.Info("Started periodic health checks", zap.Duration("interval", 30*time.Second))
 

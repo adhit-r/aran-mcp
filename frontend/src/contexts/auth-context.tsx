@@ -2,19 +2,21 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { login as loginApi, logout as logoutApi, getCurrentUser, type AuthResponse } from '@/lib/api';
+import { checkAutheliaAuth, logoutFromAuthelia, type AutheliaUser } from '@/lib/authelia';
 
 type User = {
   id: string;
   email: string;
   name: string;
+  username?: string;
+  groups?: string[];
+  auth_method?: string;
 };
 
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -29,53 +31,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Bypass login for development - auto-login with mock user
-        const mockUser = {
-          id: '1',
-          name: 'Developer',
-          email: 'dev@example.com'
-        };
-        setUser(mockUser);
-        localStorage.setItem('authToken', 'mock-token');
-        
-        // Uncomment below for production authentication
-        // const userData = await getCurrentUser();
-        // setUser(userData);
-      } catch (error) {
-        setUser(null);
-        if (pathname !== '/login') {
-          router.push('/login');
+        // Check Authelia authentication
+        const authSession = await checkAutheliaAuth();
+        if (authSession.isAuthenticated && authSession.user) {
+          setUser({
+            id: authSession.user.username,
+            email: authSession.user.email,
+            name: authSession.user.displayName,
+            username: authSession.user.username,
+            groups: authSession.user.groups,
+            auth_method: 'authelia',
+          });
+          console.log('Auth context: User authenticated via Authelia:', authSession.user.email);
+        } else {
+          setUser(null);
+          console.log('Auth context: User not authenticated via Authelia');
         }
+      } catch (error) {
+        console.log('Auth context: Authelia auth check failed:', error);
+        setUser(null);
+        // Don't redirect automatically - let the components handle it
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
-  }, [pathname, router]);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const { user, token } = await loginApi({ email, password });
-      // Store the token in localStorage or httpOnly cookie
-      localStorage.setItem('authToken', token);
-      setUser(user);
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+    // Only check auth once on mount
+    if (isLoading) {
+      checkAuth();
     }
-  };
+  }, [isLoading]);
 
   const logout = async () => {
     try {
-      await logoutApi();
-      localStorage.removeItem('authToken');
       setUser(null);
-      router.push('/login');
+      await logoutFromAuthelia();
     } catch (error) {
       console.error('Logout failed:', error);
-      throw error;
+      // Still redirect to login even if logout fails
+      router.push('/login');
     }
   };
 
@@ -83,7 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isAuthenticated: !!user,
     isLoading,
-    login,
     logout,
   };
 

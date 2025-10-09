@@ -100,9 +100,9 @@ func (h *Handler) ListServers(c *gin.Context) {
 		offset = 0
 	}
 
-	orgUUID, err := uuid.Parse(orgID.(string))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid organization ID"})
+	orgUUID, ok := orgID.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid organization ID type"})
 		return
 	}
 
@@ -147,9 +147,9 @@ func (h *Handler) ListAlerts(c *gin.Context) {
 		offset = 0
 	}
 
-	orgUUID, err := uuid.Parse(orgID.(string))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid organization ID"})
+	orgUUID, ok := orgID.(uuid.UUID)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid organization ID type"})
 		return
 	}
 

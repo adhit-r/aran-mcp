@@ -1,12 +1,19 @@
 export interface MCPServer {
   id: string;
   name: string;
-  host?: string;
-  port?: number;
-  tags?: string[];
+  url: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  type?: string;
+  status?: string;
+  version?: string;
+  capabilities?: string[];
+  organization_id?: string;
+  metadata?: Record<string, any>;
+  is_active?: boolean;
+  last_checked?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
 }
 
 export interface Server extends MCPServer {

@@ -69,6 +69,7 @@ export const Icons = {
   plus: createIcon('plus'),
   edit: createIcon('edit'),
   trash: createIcon('trash-2'),
+  refresh: createIcon('refresh-cw'),
   refreshCw: createIcon('refresh-cw'),
   search: createIcon('search'),
   filter: createIcon('filter'),
@@ -86,6 +87,7 @@ export const Icons = {
   lineChart: createIcon('line-chart'),
   pieChart: createIcon('pie-chart'),
   activity: createIcon('activity'),
+  trendingUp: createIcon('trending-up'),
   
   // Time & Date Icons
   clock: createIcon('clock'),
@@ -142,6 +144,7 @@ export const Icons = {
   unlock: createIcon('unlock'),
   key: createIcon('key'),
   userPlus: createIcon('user-plus'),
+  shield: createIcon('shield'),
   
   // Status
   zap: createIcon('zap'),

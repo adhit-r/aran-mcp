@@ -1,129 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
-import { toast } from 'sonner';
-
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
-  const onSubmit = async (data: LoginFormValues) => {
-    try {
-      setIsLoading(true);
-      await login(data.email, data.password);
-      toast.success('Logged in successfully');
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
       router.push('/dashboard');
-    } catch (error) {
-      toast.error('Invalid email or password');
-      console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
     }
+  }, [isAuthenticated, isLoading, router]);
+
+  const handleAutheliaLogin = () => {
+    // Redirect to Authelia portal
+    window.location.href = 'http://auth.mcp-sentinel.local';
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-aran-white">
+        <Icons.spinner className="h-8 w-8 animate-spin text-aran-orange" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access your account
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                disabled={isLoading}
-                {...register('email')}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-primary hover:underline"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    // Handle forgot password
-                  }}
-                >
-                  Forgot password?
-                </a>
+    <div className="min-h-screen flex items-center justify-center bg-aran-white p-4">
+      <div className="aran-card w-full max-w-md">
+        <div className="aran-card-header text-center">
+          <h1 className="text-3xl font-bold font-display text-aran-black">MCP Sentinel</h1>
+          <p className="text-aran-gray-600 mt-2">
+            Secure authentication via Authelia
+          </p>
+        </div>
+        <div className="aran-card-content space-y-6">
+          <div className="text-center space-y-4">
+            <p className="text-sm text-aran-gray-600">
+              Click the button below to authenticate with Authelia
+            </p>
+            <button 
+              onClick={handleAutheliaLogin}
+              className="aran-btn-accent w-full text-lg py-3"
+            >
+              <Icons.lock className="mr-2 h-5 w-5" />
+              Sign In with Authelia
+            </button>
+          </div>
+          
+          <div className="aran-alert aran-alert-info">
+            <div className="text-center">
+              <p className="font-semibold text-aran-black">Test Credentials:</p>
+              <div className="mt-2 space-y-1 text-sm">
+                <p><strong>Username:</strong> <code className="bg-aran-gray-100 px-2 py-1 rounded">admin</code></p>
+                <p><strong>Password:</strong> <code className="bg-aran-gray-100 px-2 py-1 rounded">admin123</code></p>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                disabled={isLoading}
-                {...register('password')}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Sign In
-            </Button>
-            <div className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
-              <a
-                href="#"
-                className="font-medium text-primary hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Handle sign up
-                }}
-              >
-                Contact admin
-              </a>
+          </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-2 text-aran-gray-500">
+              <Icons.shield className="h-4 w-4" />
+              <span className="text-xs">Secure authentication powered by Authelia</span>
             </div>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

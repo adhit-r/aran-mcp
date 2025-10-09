@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/radhi1991/aran-mcp-sentinel/internal/database"
 )
@@ -46,9 +46,7 @@ type LoginResponse struct {
 func (h *AuthHandler) RegisterRoutes(router *gin.RouterGroup) {
 	auth := router.Group("/auth")
 	{
-		auth.POST("/login", h.Login)
-		auth.POST("/refresh", h.RefreshToken)
-		auth.POST("/logout", h.Logout)
+		// Only keep the /me endpoint for Authelia
 		auth.GET("/me", h.GetCurrentUser)
 	}
 }
@@ -181,7 +179,7 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 	orgUUID, _ := uuid.Parse(orgID)
 	ipAddress := c.ClientIP()
 	userAgent := c.GetHeader("User-Agent")
-	
+
 	auditLog := &database.AuditLog{
 		OrganizationID: orgUUID,
 		UserID:         &userUUID,
@@ -201,29 +199,22 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 // GetCurrentUser returns the current authenticated user
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
-	userID, exists := GetUserIDFromContext(c)
+	// Get Authelia user information
+	autheliaUser, exists := GetAutheliaUserFromContext(c)
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated via Authelia"})
 		return
 	}
 
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	user, err := h.repo.GetUserByID(c.Request.Context(), userUUID)
-	if err != nil {
-		h.logger.Error("Failed to get user", zap.Error(err))
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-
-	// Remove password hash from response
-	user.PasswordHash = ""
-
-	c.JSON(http.StatusOK, user)
+	// Return Authelia user information
+	c.JSON(http.StatusOK, gin.H{
+		"id":          autheliaUser.Username,
+		"email":       autheliaUser.Email,
+		"name":        autheliaUser.DisplayName,
+		"username":    autheliaUser.Username,
+		"groups":      autheliaUser.Groups,
+		"auth_method": "authelia",
+	})
 }
 
 // HashPassword hashes a password using bcrypt

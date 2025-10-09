@@ -34,6 +34,32 @@ func (j *JSONB) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, j)
 }
 
+// JSONBArray represents a JSONB field that can handle both arrays and objects
+type JSONBArray []interface{}
+
+// Value implements the driver.Valuer interface
+func (j JSONBArray) Value() (driver.Value, error) {
+	if j == nil {
+		return nil, nil
+	}
+	return json.Marshal(j)
+}
+
+// Scan implements the sql.Scanner interface
+func (j *JSONBArray) Scan(value interface{}) error {
+	if value == nil {
+		*j = nil
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return json.Unmarshal([]byte(value.(string)), j)
+	}
+
+	return json.Unmarshal(bytes, j)
+}
+
 // Organization represents an organization in the system
 type Organization struct {
 	ID          uuid.UUID `db:"id" json:"id"`
@@ -73,7 +99,7 @@ type MCPServer struct {
 	Type             string     `db:"type" json:"type"`
 	Status           string     `db:"status" json:"status"`
 	Version          *string    `db:"version" json:"version"`
-	Capabilities     JSONB      `db:"capabilities" json:"capabilities"`
+	Capabilities     JSONBArray `db:"capabilities" json:"capabilities"`
 	Metadata         JSONB      `db:"metadata" json:"metadata"`
 	LastCheckedAt    *time.Time `db:"last_checked_at" json:"last_checked_at,omitempty"`
 	ResponseTimeMs   *int       `db:"response_time_ms" json:"response_time_ms,omitempty"`
@@ -215,5 +241,5 @@ type ServerStatus struct {
 	ErrorRate        *float64  `json:"error_rate,omitempty"`
 	LastChecked      time.Time `json:"last_checked"`
 	Version          *string   `json:"version,omitempty"`
-	Capabilities     JSONB     `json:"capabilities"`
+	Capabilities     JSONBArray `json:"capabilities"`
 }

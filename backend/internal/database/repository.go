@@ -174,7 +174,7 @@ func (r *Repository) CreateMCPServer(ctx context.Context, req *CreateMCPServerRe
 		Description:    req.Description,
 		Type:           req.Type,
 		Status:         "unknown",
-		Capabilities:   JSONB{},
+		Capabilities:   JSONBArray{},
 		Metadata:       JSONB{},
 		CreatedBy:      &req.CreatedBy,
 		CreatedAt:      time.Now(),
