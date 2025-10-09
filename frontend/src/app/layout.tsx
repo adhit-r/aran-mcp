@@ -4,7 +4,7 @@ import { ClientLayout } from './client-layout';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { AuthProvider } from '@/contexts/auth-context';
+import { ClerkProvider } from '@clerk/nextjs';
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({ 
@@ -60,7 +60,13 @@ export default function RootLayout({
           <link rel="apple-touch-icon" href="/icon-192.png" />
         </head>
       <body className={`${spaceGrotesk.variable} min-h-screen font-display antialiased`} suppressHydrationWarning>
-        <AuthProvider>
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          afterSignInUrl="/dashboard"
+          afterSignUpUrl="/dashboard"
+        >
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -74,7 +80,7 @@ export default function RootLayout({
               </ClientLayout>
             </ErrorBoundary>
           </ThemeProvider>
-        </AuthProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/icons';
 import { RealServerForm } from '@/components/servers/real-server-form';
 import { fetchServers, fetchProductionServers, MCPServer, ProductionMCPServer } from '@/lib/api';
-import { ProtectedRoute } from '@/components/auth/protected-route';
+import { ClerkProtectedRoute } from '@/components/auth/clerk-protected-route';
 import { AuthenticatedLayout } from '@/components/authenticated-layout';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Logo } from '@/components/logo';
@@ -69,7 +69,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <ProtectedRoute>
+    <ClerkProtectedRoute>
       <ErrorBoundary>
         <div className="min-h-screen bg-aran-white">
         {/* Simple Header */}
@@ -318,6 +318,6 @@ export default function DashboardPage() {
         </main>
       </div>
       </ErrorBoundary>
-    </ProtectedRoute>
+    </ClerkProtectedRoute>
   );
 }

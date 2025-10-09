@@ -1,19 +1,16 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-const isProtectedRoute = (pathname: string) => {
-  return pathname.startsWith('/dashboard') || 
-         pathname.startsWith('/security') || 
-         pathname.startsWith('/servers');
-};
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/security(.*)',
+  '/servers(.*)',
+]);
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // For now, let the AuthProvider handle authentication
-  // In a real implementation, you would check Authelia headers here
-  return NextResponse.next();
-}
+export default clerkMiddleware((auth, req) => {
+  if (isProtectedRoute(req)) {
+    auth.protect();
+  }
+});
 
 export const config = {
   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
