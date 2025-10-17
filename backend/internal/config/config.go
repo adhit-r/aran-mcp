@@ -6,6 +6,7 @@ type Config struct {
 	JWT      JWTConfig      `mapstructure:"jwt"`
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	Security SecurityConfig `mapstructure:"security"`
+	Clerk    ClerkConfig    `mapstructure:"clerk"`
 	Supabase SupabaseConfig `mapstructure:"supabase"`
 }
 
@@ -27,7 +28,7 @@ type DatabaseConfig struct {
 
 type JWTConfig struct {
 	SecretKey     string `mapstructure:"secret" default:"your-secret-key"`
-	AccessExpiry  int    `mapstructure:"access_expiry" default:"15"`  // minutes
+	AccessExpiry  int    `mapstructure:"access_expiry" default:"15"`   // minutes
 	RefreshExpiry int    `mapstructure:"refresh_expiry" default:"168"` // hours (7 days)
 }
 
@@ -43,4 +44,21 @@ type SecurityConfig struct {
 type SupabaseConfig struct {
 	URL string `mapstructure:"url" default:"http://localhost:8000"`
 	Key string `mapstructure:"key" default:"dummy-key-for-development"`
+}
+
+// ClerkConfig contains settings used to validate Clerk-issued JWTs or sessions
+type ClerkConfig struct {
+	// JWKSURL is the JSON Web Key Set endpoint for Clerk (used to validate JWTs).
+	// Example: https://api.clerk.dev/.well-known/jwks
+	JWKSURL string `mapstructure:"jwks_url"`
+
+	// Issuer expected in the JWT `iss` claim. Optional but recommended.
+	Issuer string `mapstructure:"issuer"`
+
+	// Audience expected in the JWT `aud` claim. Optional but recommended.
+	Audience string `mapstructure:"audience"`
+
+	// SecretKey can be used by backends that validate sessions via Clerk REST API
+	// (server-side secret). Do NOT commit this to source control.
+	SecretKey string `mapstructure:"secret_key"`
 }

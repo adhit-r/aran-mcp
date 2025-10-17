@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	"github.com/radhi1991/aran-mcp-sentinel/internal/config"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/database"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/middleware"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/security"
@@ -72,13 +75,46 @@ func main() {
 
 	// Initialize Gin router
 	r := gin.New()
-	r.Use(gin.Recovery())
 
-	// Add CORS middleware
+	// Add security middleware
+	r.Use(middleware.ErrorHandler(logger))
+	r.Use(middleware.RequestLogger(logger))
+	r.Use(middleware.SecurityHeaders())
+	r.Use(middleware.RequestValidator())
+
+	// Add rate limiting (100 requests per minute by default)
+	rateLimit := 100
+	if rateLimitStr := os.Getenv("RATE_LIMIT_REQUESTS_PER_MINUTE"); rateLimitStr != "" {
+		if parsed, err := strconv.Atoi(rateLimitStr); err == nil {
+			rateLimit = parsed
+		}
+	}
+	r.Use(middleware.RateLimiter(rateLimit, logger))
+
+	// Add secure CORS middleware
+	allowedOrigins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:3000"
+	}
+
 	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
+		origin := c.Request.Header.Get("Origin")
+
+		// Check if origin is allowed
+		allowed := false
+		for _, allowedOrigin := range strings.Split(allowedOrigins, ",") {
+			if strings.TrimSpace(allowedOrigin) == origin {
+				allowed = true
+				break
+			}
+		}
+
+		if allowed {
+			c.Header("Access-Control-Allow-Origin", origin)
+		}
 		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
@@ -114,14 +150,34 @@ func main() {
 
 		// Protected routes (require authentication)
 		protected := api.Group("/")
-		// Use Authelia middleware for authentication
-		protected.Use(auth.AutheliaMiddleware(logger))
+		// Choose authentication middleware based on configuration
+		useClerk := false
+		if os.Getenv("USE_CLERK_AUTH") == "true" || cfg.Clerk.JWKSURL != "" {
+			useClerk = true
+		}
+		if useClerk {
+			logger.Info("Using Clerk middleware for authentication")
+			protected.Use(func(c *gin.Context) {
+				// placeholder - actual Clerk middleware is registered below
+				c.Next()
+			})
+			// Register Clerk middleware with proper settings
+			protected.Use(auth.ClerkMiddleware(cfg.Clerk.JWKSURL, cfg.Clerk.Issuer, cfg.Clerk.Audience, logger))
+		} else {
+			// Use Authelia middleware for authentication
+			protected.Use(auth.AutheliaMiddleware(logger))
+		}
 		{
 			// MCP endpoints
 			mcpGroup := protected.Group("/mcp")
-			// Initialize MCP handler with repository
+
+			// Initialize legacy MCP handler with repository
 			mcpHandler := mcp.NewHandler(logger, legacyRepo)
 			mcpHandler.RegisterRoutes(mcpGroup)
+
+			// Initialize enhanced MCP handler with real functionality
+			enhancedHandler := mcp.NewEnhancedHandler(dbConn.DB, logger)
+			enhancedHandler.RegisterEnhancedRoutes(mcpGroup)
 
 			// Monitoring endpoints
 			monitoringHandler := monitoring.NewHandler(repo, logger)

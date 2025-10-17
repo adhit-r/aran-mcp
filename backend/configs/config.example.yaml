@@ -1,29 +1,110 @@
+# Aran MCP Sentinel - Configuration Template
+# Copy this file to config.yaml and update values for your environment
+
 server:
   port: 8080
-  environment: development
+  environment: "development"  # development, staging, production
   read_timeout: 30
   write_timeout: 30
+  shutdown_timeout: 5
 
 database:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: ${DB_PASSWORD:password}
-  name: aran_mcp
-  ssl_mode: disable
+  host: "${DB_HOST:localhost}"
+  port: "${DB_PORT:5432}"
+  user: "${DB_USER:postgres}"
+  password: "${DB_PASSWORD:password}"
+  name: "${DB_NAME:aran_mcp}"
+  ssl_mode: "${DB_SSL_MODE:disable}"
+  max_open_conns: 25
+  max_idle_conns: 5
+  conn_max_lifetime: "5m"
 
 jwt:
-  secret: ${JWT_SECRET:your-super-secret-jwt-key-change-in-production}
-  access_expiry: 15
-  refresh_expiry: 168
+  secret: "${JWT_SECRET:your-secret-key-change-in-production}"
+  access_expiry: 15   # minutes
+  refresh_expiry: 168 # hours (7 days)
+  issuer: "aran-mcp-sentinel"
 
 logging:
-  level: debug
+  level: "${LOG_LEVEL:info}"  # debug, info, warn, error
+  format: "json"              # json, console
+  output: "stdout"            # stdout, file
+  file_path: "/var/log/aran-mcp-sentinel.log"
 
 security:
-  rate_limit: 100
-  enable_https: false
+  rate_limit: "${RATE_LIMIT_REQUESTS_PER_MINUTE:100}"
+  enable_https: "${ENABLE_HTTPS:false}"
+  cors_origins: "${CORS_ALLOWED_ORIGINS:http://localhost:3000}"
+  api_key: "${API_KEY:mcp-sentinel-api-key-change-in-production}"
+  request_timeout: "30s"
+  max_request_size: "10MB"
+
+redis:
+  host: "${REDIS_HOST:localhost}"
+  port: "${REDIS_PORT:6379}"
+  password: "${REDIS_PASSWORD:}"
+  db: "${REDIS_DB:0}"
+  pool_size: 10
+
+monitoring:
+  enable_metrics: "${ENABLE_METRICS:true}"
+  metrics_port: 9090
+  health_check_interval: "30s"
+  alert_webhook_url: "${ALERT_WEBHOOK_URL:}"
+
+mcp:
+  discovery:
+    enabled: true
+    scan_interval: "5m"
+    timeout: "10s"
+    max_concurrent: 50
+    default_ports: [3000, 3001, 3002, 8000, 8080, 9000]
+  
+  monitoring:
+    enabled: true
+    check_interval: "30s"
+    timeout: "10s"
+    retry_attempts: 3
+    alert_threshold: 3  # failures before alert
 
 supabase:
-  url: ${SUPABASE_URL:http://localhost:8000}
-  key: ${SUPABASE_KEY:dummy-key-for-development}
+  url: "${SUPABASE_URL:http://localhost:8000}"
+  key: "${SUPABASE_KEY:dummy-key-for-development}"
+  timeout: "30s"
+
+# Feature flags
+features:
+  enable_discovery: true
+  enable_monitoring: true
+  enable_security_scanning: true
+  enable_audit_logging: true
+  enable_api_versioning: true
+
+# Environment-specific overrides
+development:
+  logging:
+    level: "debug"
+    format: "console"
+  security:
+    rate_limit: 1000
+  
+staging:
+  logging:
+    level: "info"
+  security:
+    enable_https: true
+    rate_limit: 200
+
+production:
+  logging:
+    level: "warn"
+    format: "json"
+    output: "file"
+  security:
+    enable_https: true
+    rate_limit: 60
+  database:
+    ssl_mode: "require"
+    max_open_conns: 50
+  monitoring:
+    enable_metrics: true

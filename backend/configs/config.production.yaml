@@ -1,0 +1,32 @@
+# Production Configuration for Aran MCP Sentinel
+# This file contains production-ready settings
+
+server:
+  port: 8080
+  environment: "production"
+  read_timeout: 30
+  write_timeout: 30
+
+database:
+  host: "${DB_HOST:postgres}"
+  port: "${DB_PORT:5432}"
+  user: "${DB_USER:postgres}"
+  password: "${DB_PASSWORD}"
+  name: "${DB_NAME:aran_mcp}"
+  ssl_mode: "${DB_SSL_MODE:require}"
+
+jwt:
+  secret: "${JWT_SECRET}"
+  access_expiry: 15   # minutes
+  refresh_expiry: 168 # hours (7 days)
+
+logging:
+  level: "${LOG_LEVEL:warn}"
+
+security:
+  rate_limit: "${RATE_LIMIT_REQUESTS_PER_MINUTE:60}"
+  enable_https: "${ENABLE_HTTPS:true}"
+
+supabase:
+  url: "${SUPABASE_URL}"
+  key: "${SUPABASE_KEY}"
