@@ -7,20 +7,37 @@ const posts = [
   {
     title: "Introducing Aran MCP Sentinel",
     date: "2024-12-04",
-    excerpt: "Announcing the launch of Aran MCP Sentinel, an enterprise-grade security platform for Model Context Protocol deployments.",
-    slug: "introducing-aran-mcp-sentinel"
+    excerpt: "Announcing the launch of Aran MCP Sentinel, an enterprise-grade security platform for Model Context Protocol deployments. Learn about our mission to secure MCP infrastructure and provide comprehensive management tooling.",
+    slug: "introducing-aran-mcp-sentinel",
+    category: "Announcements"
   },
   {
     title: "OWASP MCP Top 10 Security Risks",
     date: "2024-12-01",
-    excerpt: "Understanding the top 10 security risks in Model Context Protocol implementations and how to mitigate them.",
-    slug: "owasp-mcp-top-10"
+    excerpt: "Understanding the top 10 security risks in Model Context Protocol implementations and how to mitigate them. Learn about prompt injection, tool poisoning, and other critical vulnerabilities.",
+    slug: "owasp-mcp-top-10",
+    category: "Security"
   },
   {
     title: "Best Practices for MCP Server Deployment",
     date: "2024-11-28",
-    excerpt: "Learn the best practices for deploying and managing MCP servers in production environments.",
-    slug: "mcp-server-deployment"
+    excerpt: "Learn the best practices for deploying and managing MCP servers in production environments. Configuration management, monitoring, and security considerations.",
+    slug: "mcp-server-deployment",
+    category: "Deployment"
+  },
+  {
+    title: "Automated MCP Server Discovery",
+    date: "2024-11-25",
+    excerpt: "How Aran MCP Sentinel automatically discovers and catalogs MCP servers across your network. No manual configuration required.",
+    slug: "automated-discovery",
+    category: "Features"
+  },
+  {
+    title: "Real-time Monitoring for MCP Infrastructure",
+    date: "2024-11-22",
+    excerpt: "Monitor your MCP servers in real-time with health checks, performance metrics, and instant alerts. Keep your infrastructure running smoothly.",
+    slug: "real-time-monitoring",
+    category: "Monitoring"
   }
 ];
 ---
@@ -35,35 +52,54 @@ const posts = [
       <div class="max-w-4xl mx-auto">
         <h1 class="text-5xl md:text-6xl font-black mb-6">Blog</h1>
         <p class="text-xl text-primary-light mb-12">
-          Latest updates, articles, and insights about MCP security and management.
+          Latest updates, articles, and insights about MCP security and management. Stay informed about best practices, platform updates, and industry trends.
         </p>
 
         <div class="space-y-8">
           {posts.map((post) => (
             <article class="bg-white border-4 border-black p-8 shadow-brutal">
-              <time class="text-sm text-primary-light mb-2 block">
-                {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </time>
+              <div class="flex items-center gap-4 mb-3">
+                <time class="text-sm text-primary-light">
+                  {new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </time>
+                <span class="text-sm px-3 py-1 bg-background-alt border-2 border-black font-semibold">
+                  {post.category}
+                </span>
+              </div>
               <h2 class="text-3xl font-black mb-4">
-                <a href={`/blog/${post.slug}`} class="hover:underline">
-                  {post.title}
-                </a>
+                {post.title}
               </h2>
               <p class="text-primary-light mb-4">
                 {post.excerpt}
               </p>
               <a 
-                href={`/blog/${post.slug}`} 
-                class="text-accent font-bold hover:underline"
+                href={`https://github.com/adhit-r/aran-mcp/discussions` 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-accent font-bold hover:underline inline-flex items-center gap-2"
               >
-                Read more →
+                Read more on GitHub Discussions →
               </a>
             </article>
           ))}
+        </div>
+
+        <div class="mt-12 bg-background-alt border-4 border-black p-8 text-center">
+          <h2 class="text-2xl font-black mb-4">Want to Contribute?</h2>
+          <p class="text-primary-light mb-6">
+            Have an idea for a blog post or want to share your MCP experience? We'd love to hear from you!
+          </p>
+          <a 
+            href="https://github.com/adhit-r/aran-mcp/discussions" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-block px-8 py-4 bg-primary text-white font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
+          >
+            Join the Discussion
+          </a>
         </div>
       </div>
     </section>
   </main>
   <Footer />
 </BaseLayout>
-
