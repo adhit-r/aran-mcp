@@ -1,0 +1,56 @@
+---
+const currentPath = Astro.url.pathname;
+---
+
+<header class="border-b-4 border-black bg-white sticky top-0 z-50">
+  <nav class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-2xl font-black tracking-tight">
+        Aran MCP Sentinel
+      </a>
+      <ul class="flex items-center gap-8">
+        <li>
+          <a 
+            href="/" 
+            class={`font-semibold hover:underline ${currentPath === '/' ? 'underline' : ''}`}
+          >
+            Home
+          </a>
+        </li>
+        <li>
+          <a 
+            href="/features" 
+            class={`font-semibold hover:underline ${currentPath === '/features' ? 'underline' : ''}`}
+          >
+            Features
+          </a>
+        </li>
+        <li>
+          <a 
+            href="/docs" 
+            class={`font-semibold hover:underline ${currentPath === '/docs' ? 'underline' : ''}`}
+          >
+            Documentation
+          </a>
+        </li>
+        <li>
+          <a 
+            href="/blog" 
+            class={`font-semibold hover:underline ${currentPath === '/blog' ? 'underline' : ''}`}
+          >
+            Blog
+          </a>
+        </li>
+        <li>
+          <a 
+            href="/contact" 
+            class={`font-semibold hover:underline ${currentPath === '/contact' ? 'underline' : ''}`}
+          >
+            Contact
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+

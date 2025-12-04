@@ -107,3 +107,42 @@ Thumbs.db
 
 # Archive directory (excluded from version control)
 archive/
+docs/archive/
+
+# Website build output
+website/dist/
+
+# Test results and reports
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright-mcp/
+test-results/
+playwright-report/
+
+# Compiled binaries
+backend/main
+backend/main-simple
+backend/bin/
+
+# Local configuration files
+backend/configs/config.yaml
+backend/configs/config.yaml.local
+backend/configs/config.production.yaml
+
+# OS files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Kiro (if not needed)
+.kiro/

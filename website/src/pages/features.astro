@@ -1,0 +1,96 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout 
+  title="Features"
+  description="Comprehensive features for MCP server discovery, security testing, monitoring, and management."
+>
+  <Header />
+  <main>
+    <section class="container mx-auto px-4 py-20">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-5xl md:text-6xl font-black mb-6">Features</h1>
+        <p class="text-xl text-primary-light mb-12">
+          Comprehensive tooling for managing and securing Model Context Protocol deployments.
+        </p>
+
+        <div class="space-y-12">
+          <!-- Feature 1 -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">Server Discovery and Catalog</h2>
+            <p class="text-primary-light mb-4">
+              Automatically discover MCP endpoints and services across your network. Build a comprehensive catalog of available MCP servers, tools, and resources with version tracking and compatibility management.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
+              <li>Automated network scanning</li>
+              <li>Endpoint detection and registration</li>
+              <li>Version tracking and compatibility</li>
+              <li>Service health monitoring</li>
+            </ul>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">Security Testing and Analysis</h2>
+            <p class="text-primary-light mb-4">
+              Comprehensive security testing suite with automated vulnerability assessment and OWASP MCP Top 10 compliance checking. Real-time threat detection with risk scoring and remediation recommendations.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
+              <li>OWASP MCP Top 10 compliance</li>
+              <li>Prompt injection detection</li>
+              <li>Tool poisoning prevention</li>
+              <li>Automated vulnerability scanning</li>
+            </ul>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">Health Monitoring</h2>
+            <p class="text-primary-light mb-4">
+              Continuous uptime and performance monitoring with real-time alerting. Track response times, availability metrics, and historical trend analysis.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
+              <li>Real-time health checks</li>
+              <li>Performance metrics tracking</li>
+              <li>Alert management</li>
+              <li>Historical analytics</li>
+            </ul>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">Interactive Documentation</h2>
+            <p class="text-primary-light mb-4">
+              Swagger-like API documentation for MCP endpoints with tool specifications, usage examples, and integration guides.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
+              <li>API endpoint documentation</li>
+              <li>Tool and resource specifications</li>
+              <li>Code snippets and examples</li>
+              <li>Versioned documentation history</li>
+            </ul>
+          </div>
+
+          <!-- Feature 5 -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">Enterprise Deployment</h2>
+            <p class="text-primary-light mb-4">
+              Secure configuration templates, deployment best practices, environment validation, and rollback procedures for production deployments.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
+              <li>Configuration templates</li>
+              <li>Deployment automation</li>
+              <li>Environment validation</li>
+              <li>Rollback and recovery</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+

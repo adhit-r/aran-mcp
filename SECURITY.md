@@ -1,15 +1,15 @@
 # Security Policy
 
-## 🔒 Security Considerations
+## Security Considerations
 
 This document outlines security measures and considerations for the Aran MCP Sentinel platform.
 
-## 🚨 Important Security Notes
+## Important Security Notes
 
 ### Default Credentials
 - **Default Admin User**: `admin@aran-mcp.com`
 - **Default Password**: `admin123`
-- **⚠️ CRITICAL**: Change these credentials immediately in production!
+- **CRITICAL**: Change these credentials immediately in production!
 
 ### Environment Variables
 All sensitive configuration should be provided via environment variables:
@@ -23,7 +23,7 @@ SUPABASE_URL=your-supabase-url
 SUPABASE_KEY=your-supabase-key
 ```
 
-## 🛡️ Security Features
+## Security Features
 
 ### Authentication & Authorization
 - **JWT-based Authentication**: Secure token-based authentication
@@ -45,7 +45,7 @@ SUPABASE_KEY=your-supabase-key
 - **Container Security**: Docker best practices
 - **Network Security**: HTTPS support (configurable)
 
-## 🔧 Security Configuration
+## Security Configuration
 
 ### Production Checklist
 - [ ] Change default admin password
@@ -66,7 +66,7 @@ cp env.example .env
 cp backend/configs/config.example.yaml backend/configs/config.yaml
 ```
 
-## 🚨 Reporting Security Issues
+## Reporting Security Issues
 
 If you discover a security vulnerability, please report it responsibly:
 
@@ -75,7 +75,7 @@ If you discover a security vulnerability, please report it responsibly:
 3. Include detailed information about the vulnerability
 4. Allow reasonable time for response before public disclosure
 
-## 📋 Security Best Practices
+## Security Best Practices
 
 ### For Developers
 - Never commit secrets to version control
@@ -93,7 +93,7 @@ If you discover a security vulnerability, please report it responsibly:
 - Backup data regularly
 - Test disaster recovery procedures
 
-## 🔍 Security Monitoring
+## Security Monitoring
 
 The platform includes comprehensive security monitoring:
 
@@ -103,7 +103,7 @@ The platform includes comprehensive security monitoring:
 - **Performance Monitoring**: Response time tracking
 - **Error Tracking**: Comprehensive error logging
 
-## 📚 Additional Resources
+## Additional Resources
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [JWT Best Practices](https://tools.ietf.org/html/rfc7519)

@@ -1,6 +1,6 @@
 # Aran MCP Sentinel
 
-Enterprise-grade security and management platform for Model Context Protocol (MCP) deployments.
+Enterprise-grade security and management platform for Model Context Protocol (MCP) deployments. Discover, monitor, secure, and manage MCP servers with comprehensive tooling and real-time threat detection.
 
 ## Overview
 
@@ -148,6 +148,10 @@ docker-compose up --build
 2. Access the application:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8080
+
+## Repository Organization
+
+The repository is organized following industry best practices for clarity and maintainability. See [ORGANIZATION.md](ORGANIZATION.md) and [docs/STRUCTURE.md](docs/STRUCTURE.md) for detailed structure documentation.
 
 ## Project Structure
 

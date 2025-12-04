@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://adhit-r.github.io/aran-mcp/sitemap.xml
+

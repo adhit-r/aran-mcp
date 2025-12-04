@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout 
+  title="Contact"
+  description="Get in touch with the Aran MCP Sentinel team for support, questions, or contributions."
+>
+  <Header />
+  <main>
+    <section class="container mx-auto px-4 py-20">
+      <div class="max-w-2xl mx-auto">
+        <h1 class="text-5xl md:text-6xl font-black mb-6">Contact</h1>
+        <p class="text-xl text-primary-light mb-12">
+          Have questions or want to contribute? We'd love to hear from you.
+        </p>
+
+        <div class="bg-white border-4 border-black p-8 shadow-brutal mb-8">
+          <h2 class="text-2xl font-black mb-6">Get in Touch</h2>
+          <div class="space-y-6">
+            <div>
+              <h3 class="font-bold mb-2">GitHub Issues</h3>
+              <p class="text-primary-light mb-2">
+                For bug reports, feature requests, and questions, please open an issue on GitHub.
+              </p>
+              <a 
+                href="https://github.com/adhit-r/aran-mcp/issues" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-accent font-bold hover:underline"
+              >
+                Open an Issue →
+              </a>
+            </div>
+
+            <div>
+              <h3 class="font-bold mb-2">Contributions</h3>
+              <p class="text-primary-light mb-2">
+                We welcome contributions! Please read our contributing guidelines before submitting a pull request.
+              </p>
+              <a 
+                href="https://github.com/adhit-r/aran-mcp/blob/main/CONTRIBUTING.md" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-accent font-bold hover:underline"
+              >
+                Contributing Guide →
+              </a>
+            </div>
+
+            <div>
+              <h3 class="font-bold mb-2">Documentation</h3>
+              <p class="text-primary-light mb-2">
+                Check out our comprehensive documentation for guides, API reference, and more.
+              </p>
+              <a 
+                href="/docs" 
+                class="text-accent font-bold hover:underline"
+              >
+                View Documentation →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-background-alt border-4 border-black p-8">
+          <h2 class="text-2xl font-black mb-4">Community</h2>
+          <p class="text-primary-light mb-4">
+            Join our community of developers and security professionals working with Model Context Protocol.
+          </p>
+          <ul class="space-y-2">
+            <li>
+              <a href="https://github.com/adhit-r/aran-mcp" class="text-accent hover:underline font-semibold" target="_blank" rel="noopener noreferrer">
+                GitHub Repository
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/adhit-r/aran-mcp/discussions" class="text-accent hover:underline font-semibold" target="_blank" rel="noopener noreferrer">
+                GitHub Discussions
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
