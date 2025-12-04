@@ -1,1 +1,44 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-primary: #000000;
+    --color-primary-light: #333333;
+    --color-accent: #FF0000;
+    --color-accent-light: #FF3333;
+    --color-background: #FFFFFF;
+    --color-background-alt: #F5F5F5;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 900;
+    line-height: 1.2;
+  }
+  
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+}

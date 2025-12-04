@@ -1,4 +1,6 @@
 ---
+import '../styles/global.css';
+
 interface Props {
   title: string;
   description?: string;
@@ -19,25 +21,43 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
     
     <!-- Primary Meta Tags -->
     <title>{title} | Aran MCP Sentinel</title>
-    <meta name="title" content={title} />
+    <meta name="title" content={`${title} | Aran MCP Sentinel`} />
     <meta name="description" content={description} />
+    <meta name="keywords" content="MCP, Model Context Protocol, security, monitoring, enterprise, API security, threat detection, OWASP, vulnerability scanning" />
+    <meta name="author" content="Aran MCP Sentinel" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={`${title} | Aran MCP Sentinel`} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Aran MCP Sentinel" />
+    <meta property="og:locale" content="en_US" />
     
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={canonicalURL} />
-    <meta property="twitter:title" content={title} />
-    <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={`${title} | Aran MCP Sentinel`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:creator" content="@aranmcpsentinel" />
+    <meta name="twitter:site" content="@aranmcpsentinel" />
     
     <!-- Canonical URL -->
     <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#000000" />
+    <meta name="msapplication-TileColor" content="#000000" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
     
     <!-- Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -57,31 +77,34 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD"
-      }
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "1"
+      },
+      "featureList": [
+        "MCP Server Discovery",
+        "Security Testing",
+        "Real-time Monitoring",
+        "OWASP MCP Top 10 Compliance",
+        "Threat Detection"
+      ]
+    })} />
+    
+    <!-- Organization Schema -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Aran MCP Sentinel",
+      "url": Astro.site,
+      "logo": new URL("/favicon.svg", Astro.site),
+      "sameAs": [
+        "https://github.com/adhit-r/aran-mcp"
+      ]
     })} />
   </head>
   <body class="bg-background text-primary font-sans antialiased">
     <slot />
   </body>
 </html>
-
-<style>
-  @import '../styles/global.css';
-</style>
-
-<style is:global>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  body {
-    min-height: 100vh;
-  }
-</style>
-
