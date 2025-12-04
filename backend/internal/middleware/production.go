@@ -3,8 +3,6 @@ package middleware
 import (
 	"context"
 	"crypto/subtle"
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"

@@ -10,11 +10,15 @@ export interface MCPServer {
   description?: string;
   type: string;
   status: string;
+  version?: string;
   capabilities?: any;
   tools?: MCPTool[];
   resources?: MCPResource[];
   last_checked?: string;
   response_time?: number;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface MCPTool {
@@ -51,6 +55,71 @@ export interface ToolExecution {
   status: string;
   duration: number;
   executed_at: string;
+}
+
+// Endpoint Scanning Types
+export interface ScanResult {
+  url: string;
+  reachable: boolean;
+  is_mcp_server: boolean;
+  response_time: number; // milliseconds
+  http_status?: number;
+  version?: string;
+  capabilities?: {
+    tools?: boolean;
+    resources?: boolean;
+    prompts?: boolean;
+    logging?: boolean;
+    sampling?: boolean;
+  };
+  server_info?: {
+    name: string;
+    version: string;
+    description?: string;
+    capabilities: any;
+  };
+  tools?: Array<{
+    name: string;
+    description?: string;
+    inputSchema: any;
+  }>;
+  resources?: Array<{
+    uri: string;
+    name: string;
+    description?: string;
+    mimeType?: string;
+  }>;
+  prompts?: Array<{
+    name: string;
+    description?: string;
+    arguments?: Array<{
+      name: string;
+      description?: string;
+      required?: boolean;
+    }>;
+  }>;
+  health_status?: string;
+  detected_protocol?: string;
+  headers?: Record<string, string>;
+  metadata?: Record<string, any>;
+  error?: string;
+  scan_timestamp: string;
+}
+
+export interface ScanEndpointRequest {
+  url: string;
+}
+
+export interface ScanMultipleEndpointsRequest {
+  urls: string[];
+  max_concurrent?: number;
+}
+
+export interface ScanPortRangeRequest {
+  host: string;
+  start_port: number;
+  end_port: number;
+  max_concurrent?: number;
 }
 
 class MCPApiClient {
@@ -141,8 +210,8 @@ class MCPApiClient {
     return response.data;
   }
 
-  async executeTool(id: string, arguments: Record<string, any>): Promise<ToolExecution> {
-    const response = await this.client.post(`/mcp/tools/${id}/execute`, { arguments });
+  async executeTool(id: string, args: Record<string, any>): Promise<ToolExecution> {
+    const response = await this.client.post(`/mcp/tools/${id}/execute`, { arguments: args });
     return response.data;
   }
 
@@ -192,6 +261,74 @@ class MCPApiClient {
     const response = await this.client.get(`/mcp/monitoring/alerts?limit=${limit}`);
     return response.data.alerts;
   }
+
+  // Endpoint Scanning APIs
+  async scanEndpoint(url: string): Promise<{ result: ScanResult }> {
+    const response = await this.client.post('/discovery/endpoint/scan', { url });
+    return response.data;
+  }
+
+  async scanMultipleEndpoints(urls: string[], maxConcurrent?: number): Promise<{
+    results: ScanResult[];
+    total_scanned: number;
+    total_found: number;
+  }> {
+    const response = await this.client.post('/discovery/endpoint/scan-multiple', {
+      urls,
+      max_concurrent: maxConcurrent || 10,
+    });
+    return response.data;
+  }
+
+  async scanPortRange(
+    host: string,
+    startPort: number,
+    endPort: number,
+    maxConcurrent?: number
+  ): Promise<{
+    results: ScanResult[];
+    mcp_servers: ScanResult[];
+    total_ports: number;
+    reachable: number;
+    mcp_servers_count: number;
+  }> {
+    const response = await this.client.post('/discovery/endpoint/scan-ports', {
+      host,
+      start_port: startPort,
+      end_port: endPort,
+      max_concurrent: maxConcurrent || 20,
+    });
+    return response.data;
+  }
+
+  // Preset APIs
+  async listPresets() {
+    const response = await this.client.get('/mcp/presets');
+    return response.data.data;
+  }
+
+  async getPreset(id: string) {
+    const response = await this.client.get(`/mcp/presets/${id}`);
+    return response.data.data;
+  }
+
+  async getPresetsByCategory(category: string) {
+    const response = await this.client.get(`/mcp/presets/category/${category}`);
+    return response.data.data;
+  }
+}
+
+export interface MCPServerPreset {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  default_url: string;
+  config_template: Record<string, any>;
+  setup_instructions: string;
+  security_notes: string;
+  required_tools: string[];
 }
 
 export const mcpApi = new MCPApiClient();

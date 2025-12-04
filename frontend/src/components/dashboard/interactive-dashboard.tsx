@@ -66,91 +66,131 @@ const InteractiveDashboard: React.FC = () => {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [servers, setServers] = useState<ServerStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState('24h');
 
-  // Mock data generation for demonstration
+  // Load real data from backend
   useEffect(() => {
-    const generateMockData = () => {
-      const now = new Date();
-      const data: ChartData[] = [];
-      
-      for (let i = 23; i >= 0; i--) {
-        const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000);
-        data.push({
-          timestamp: timestamp.toISOString(),
-          responseTime: Math.random() * 200 + 50,
-          uptime: Math.random() * 10 + 90,
-          healthScore: Math.random() * 20 + 80,
-          alerts: Math.floor(Math.random() * 5)
-        });
-      }
-      
-      setChartData(data);
-      
-      setMetrics({
-        totalServers: 12,
-        onlineServers: 10,
-        offlineServers: 2,
-        criticalAlerts: 3,
-        averageResponseTime: 145,
-        uptimePercentage: 94.2,
-        healthScore: 87
-      });
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      setServers([
-        {
-          id: '1',
-          name: 'Production API',
-          status: 'online',
-          responseTime: 120,
-          uptime: 99.8,
-          lastChecked: '2 minutes ago',
-          healthScore: 95
-        },
-        {
-          id: '2',
-          name: 'Database Server',
-          status: 'online',
-          responseTime: 85,
-          uptime: 99.9,
-          lastChecked: '1 minute ago',
-          healthScore: 98
-        },
-        {
-          id: '3',
-          name: 'Cache Server',
-          status: 'warning',
-          responseTime: 250,
-          uptime: 95.2,
-          lastChecked: '3 minutes ago',
-          healthScore: 75
-        },
-        {
-          id: '4',
-          name: 'File Server',
-          status: 'offline',
-          responseTime: 0,
-          uptime: 0,
-          lastChecked: '15 minutes ago',
-          healthScore: 0
+        // Fetch dashboard data from API
+        const response = await fetch('/api/dashboard');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch dashboard data: ${response.statusText}`);
         }
-      ]);
-      
-      setIsLoading(false);
+
+        const dashboardData = await response.json();
+
+        // Update metrics from real data
+        setMetrics({
+          totalServers: dashboardData.stats?.totalServers || 0,
+          onlineServers: dashboardData.stats?.onlineServers || 0,
+          offlineServers: dashboardData.stats?.offlineServers || 0,
+          criticalAlerts: dashboardData.stats?.criticalAlerts || 0,
+          averageResponseTime: dashboardData.stats?.averageResponseTime || 0,
+          uptimePercentage: parseFloat(dashboardData.stats?.uptime?.replace('%', '') || '0'),
+          healthScore: dashboardData.stats?.healthScore || 0
+        });
+
+        // Transform server data
+        const serverList: ServerStatus[] = (dashboardData.servers || []).map((server: any) => ({
+          id: server.id,
+          name: server.name,
+          status: server.status === 'online' ? 'online' : server.status === 'offline' ? 'offline' : 'warning',
+          responseTime: server.responseTime || 0,
+          uptime: server.uptime || 0,
+          lastChecked: formatLastChecked(server.lastChecked || server.last_checked),
+          healthScore: calculateHealthScore(server)
+        }));
+
+        setServers(serverList);
+
+        // Generate chart data from monitoring data
+        if (dashboardData.monitoring && dashboardData.monitoring.length > 0) {
+          const chartDataPoints: ChartData[] = dashboardData.monitoring
+            .slice(-24) // Last 24 data points
+            .map((monitor: any) => ({
+              timestamp: monitor.LastCheck || monitor.last_checked || new Date().toISOString(),
+              responseTime: monitor.ResponseTime || monitor.response_time || 0,
+              uptime: monitor.Metrics?.UptimePercentage || monitor.uptime_percentage || 0,
+              healthScore: calculateHealthScore(monitor),
+              alerts: 0 // Can be enhanced to count alerts per timestamp
+            }));
+          setChartData(chartDataPoints);
+        } else {
+          // Empty chart data if no monitoring data
+          setChartData([]);
+        }
+
+        setIsLoading(false);
+      } catch (err: any) {
+        console.error('Failed to load dashboard data:', err);
+        setError(err.message || 'Failed to load dashboard data');
+        setIsLoading(false);
+      }
     };
 
-    generateMockData();
+    loadDashboardData();
 
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       if (autoRefresh) {
-        generateMockData();
+        loadDashboardData();
       }
     }, 30000);
 
     return () => clearInterval(interval);
   }, [autoRefresh]);
+
+  // Helper function to format last checked time
+  const formatLastChecked = (timestamp: string): string => {
+    if (!timestamp) return 'Never';
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffSecs = Math.floor(diffMs / 1000);
+      
+      if (diffSecs < 60) return `${diffSecs}s ago`;
+      if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`;
+      if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)}h ago`;
+      return `${Math.floor(diffSecs / 86400)}d ago`;
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+  // Helper function to calculate health score
+  const calculateHealthScore = (server: any): number => {
+    let score = 100;
+    
+    // Deduct points for offline status
+    if (server.status === 'offline' || server.Status === 'offline') {
+      return 0;
+    }
+    
+    // Deduct points for high response time (>500ms)
+    const responseTime = server.responseTime || server.ResponseTime || 0;
+    if (responseTime > 500) {
+      score -= 20;
+    } else if (responseTime > 200) {
+      score -= 10;
+    }
+    
+    // Deduct points for low uptime
+    const uptime = server.uptime || server.Metrics?.UptimePercentage || 100;
+    if (uptime < 95) {
+      score -= 15;
+    } else if (uptime < 99) {
+      score -= 5;
+    }
+    
+    return Math.max(0, score);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -178,6 +218,24 @@ const InteractiveDashboard: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="h-8 w-8 animate-spin text-primary" />
         <span className="ml-2">Loading dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <AlertTriangle className="h-12 w-12 text-red-500" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900">Failed to load dashboard</h3>
+          <p className="text-sm text-gray-600 mt-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

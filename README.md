@@ -1,395 +1,363 @@
 # Aran MCP Sentinel
 
-Enterprise-Grade MCP (Model Context Protocol) Security and Management Platform
+Enterprise-grade security and management platform for Model Context Protocol (MCP) deployments.
 
-[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.0+-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-181818?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Contributors](https://img.shields.io/github/contributors/radhi1991/aran-mcp-sentinel)](https://github.com/radhi1991/aran-mcp-sentinel/graphs/contributors)
-[![Issues](https://img.shields.io/github/issues/radhi1991/aran-mcp-sentinel)](https://github.com/radhi1991/aran-mcp-sentinel/issues)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/radhi1991/aran-mcp-sentinel/pulls)
+## Overview
 
-```mermaid
-graph TD
-    A[MCP Server Discovery] --> B[Documentation Generation]
-    B --> C[Security Testing]
-    C --> D[Risk Analysis]
-    D --> E[Remediation]
-```
-
-## Table of Contents
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [Documentation](#documentation)
-- [Quick Start](#quick-start)
-- [API Documentation](#api-documentation)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Contributing](#contributing)
-- [Security Best Practices](#security-best-practices)
-- [Roadmap](#roadmap)
-- [Support](#support)
-- [License](#license)
+Aran MCP Sentinel provides comprehensive security, monitoring, and management capabilities for MCP server deployments. The platform enables organizations to discover, document, test, and secure MCP implementations with enterprise-grade tooling and real-time threat detection.
 
 ## Key Features
 
-### 1. MCP Catalog / Discovery
+### Server Discovery and Catalog
 - Automated discovery of MCP endpoints and services
 - Comprehensive catalog of available MCP servers and tools
 - Version tracking and compatibility management
 - Service health monitoring and status reporting
 
-### 2. MCP Documentation
-- Interactive API documentation (similar to Swagger)
-- Tool and endpoint specifications
-- Usage examples and code snippets
+### Interactive Documentation
+- Swagger-like API documentation for MCP endpoints
+- Tool and endpoint specifications with usage examples
 - Versioned documentation history
+- Code snippets and integration guides
 
-### 3. MCP Secure Testing
+### Security Testing and Analysis
 - Comprehensive test suite for MCP implementations
-- Automated security scanning
+- Automated security scanning and vulnerability assessment
+- OWASP MCP Top 10 compliance checking
+- Real-time threat detection and risk scoring
 - Integration with CI/CD pipelines
-- Test case management and reporting
 
-### 4. MCP Security Analysis
-- Real-time security monitoring
-- Vulnerability assessment
-- Compliance checking
-- Risk scoring and prioritization
+### Health Monitoring
+- Continuous uptime and performance monitoring
+- Response time tracking and alerting
+- Service availability metrics
+- Historical trend analysis
 
-### 5. MCP Secure Deployment
+### Enterprise Deployment
 - Secure configuration templates
-- Deployment best practices
+- Deployment best practices and guidelines
 - Environment validation
 - Rollback and recovery procedures
 
 ## Technology Stack
 
 ### Backend
-- **Language**: Go 1.21+
-- **Web Framework**: Gin
-- **Database**: PostgreSQL (via Supabase)
-- **Authentication**: JWT
-- **Logging**: Zap
-- **Configuration**: Viper
-- **Testing**: Go Test
-- **Containerization**: Docker
+- Language: Go 1.22+
+- Web Framework: Gin
+- Database: PostgreSQL (via Supabase)
+- Authentication: JWT, Authelia, Clerk, Neon Auth
+- Logging: Zap
+- Configuration: YAML-based configuration
+- Testing: Go Test
+- Containerization: Docker
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **UI Library**: React 18 + TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Query
-- **Form Handling**: React Hook Form + Zod
-- **UI Components**: Radix UI + Custom Components
-- **Charts**: Recharts
-- **Icons**: Lucide React
+- Framework: Next.js 14 (App Router)
+- Language: TypeScript 5.0+
+- UI Library: React 18
+- Styling: Tailwind CSS
+- State Management: React Query
+- Form Handling: React Hook Form with Zod validation
+- UI Components: Radix UI with custom components
+- Charts: Recharts
+- Icons: Lucide React
 
 ### Infrastructure
-- **Database**: Supabase (PostgreSQL)
-- **Deployment**: Docker, Kubernetes
-- **CI/CD**: GitHub Actions
-- **Monitoring**: Prometheus, Grafana (Planned)
-
-## Security Best Practices
-
-### Supply Chain Security
-MCP servers are composed of executable code, so users should only use MCP servers that they trust. Key considerations include:
-- **Code Signing**: All MCP components must be signed by the developer for integrity verification
-- **Build Pipeline Security**: Implement SAST (Static Application Security Testing) and SCA (Software Composition Analysis)
-- **Dependency Management**: Regular scanning and updating of all dependencies
-- **Cloud Service Verification**: Implement cryptographic server verification for cloud-hosted MCP servers
-
-### Top 10 MCP Security Risks
-
-1. **Prompt Injection**
-   - **Risk**: Malicious inputs manipulating AI behavior
-   - **Mitigation**: Implement input validation and monitoring
-
-2. **Tool Poisoning**
-   - **Risk**: Compromised tool metadata leading to malicious actions
-   - **Mitigation**: Regular validation of tool metadata
-
-3. **Privilege Abuse**
-   - **Risk**: Excessive permissions leading to unauthorized access
-   - **Mitigation**: Follow principle of least privilege
-
-4. **Tool Shadowing**
-   - **Risk**: Rogue tools mimicking legitimate services
-   - **Mitigation**: Maintain a verified registry of trusted tools
-
-5. **Indirect Prompt Injection**
-   - **Risk**: Hidden malicious instructions in external data
-   - **Mitigation**: Monitor and validate external content
-
-6. **Sensitive Data Exposure**
-   - **Risk**: Leakage of API keys and credentials
-   - **Mitigation**: Secure credential storage and access controls
-
-7. **Command/SQL Injection**
-   - **Risk**: Unauthorized command execution
-   - **Mitigation**: Input validation and parameterized queries
-
-8. **Rug Pull Attacks**
-   - **Risk**: Legitimate tools turning malicious
-   - **Mitigation**: Behavior monitoring and sandboxing
-
-9. **Denial of Wallet/Service**
-   - **Risk**: Resource exhaustion leading to service disruption
-   - **Mitigation**: Implement rate limiting and quotas
-
-10. **Authentication Bypass**
-    - **Risk**: Weak authentication mechanisms
-    - **Mitigation**: Multi-factor authentication and regular audits
+- Database: Supabase (PostgreSQL)
+- Deployment: Docker, Docker Compose, Kubernetes
+- CI/CD: GitHub Actions
+- Monitoring: Prometheus, Grafana
 
 ## Quick Start
 
 ### Prerequisites
-- Go 1.21+ (for backend)
-- Node.js 18+ (for frontend)
+- Go 1.22 or later
+- Node.js 18 or later
 - Docker (optional, for containerized deployment)
-- Supabase account (for database)
+- PostgreSQL database (Supabase recommended)
 
 ### Backend Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/radhi1991/aran-mcp-sentinel.git
-   cd aran-mcp-sentinel
-   ```
+1. Clone the repository:
+```bash
+git clone https://github.com/adhit-r/aran-mcp.git
+cd aran-mcp
+```
 
-2. **Set up backend environment**
-   ```bash
-   cd backend
-   cp configs/config.example.yaml configs/config.yaml
-   # Update the configuration in configs/config.yaml
-   ```
+2. Navigate to the backend directory:
+```bash
+cd backend
+```
 
-3. **Install Go dependencies**
-   ```bash
-   go mod download
-   ```
+3. Copy the example configuration:
+```bash
+cp configs/config.example.yaml configs/config.yaml
+```
 
-4. **Start the backend server**
-   ```bash
-   go run cmd/server/main.go
-   ```
+4. Update `configs/config.yaml` with your database credentials and settings.
 
-5. **Verify the API is running**
-   ```bash
-   curl http://localhost:8080/health
-   ```
+5. Install Go dependencies:
+```bash
+go mod download
+```
+
+6. Run database migrations:
+```bash
+# Migrations are located in backend/migrations/
+# Apply them to your PostgreSQL database
+```
+
+7. Start the backend server:
+```bash
+go run cmd/server/main.go
+```
+
+The API will be available at `http://localhost:8080`
 
 ### Frontend Setup
 
-1. **Navigate to frontend directory**
-   ```bash
-   cd frontend
-   ```
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
 
-2. **Install Node.js dependencies**
-   ```bash
-   npm install
-   ```
+2. Install dependencies:
+```bash
+npm install
+```
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+3. Create a `.env.local` file with your configuration:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
 
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+4. Start the development server:
+```bash
+npm run dev
+```
 
-### Docker Setup (Alternative)
+The frontend will be available at `http://localhost:3000`
 
-1. **Build and run with Docker Compose**
-   ```bash
-   docker-compose up --build
-   ```
+### Docker Setup
 
-2. **Access the application**
-   - Frontend: [http://localhost:3000](http://localhost:3000)
-   - Backend API: [http://localhost:8080](http://localhost:8080)
+1. Build and start all services:
+```bash
+docker-compose up --build
+```
+
+2. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+
+## Project Structure
+
+```
+aran-mcp/
+├── backend/                 # Go backend application
+│   ├── cmd/server/         # Main application entry point
+│   ├── internal/           # Internal packages
+│   │   ├── auth/          # Authentication handlers
+│   │   ├── config/        # Configuration management
+│   │   ├── database/      # Database models and connection
+│   │   ├── discovery/     # MCP server discovery
+│   │   ├── mcp/           # MCP protocol implementation
+│   │   ├── monitoring/    # Health monitoring
+│   │   └── security/      # Security testing
+│   ├── configs/           # Configuration files
+│   ├── migrations/        # Database migrations
+│   └── go.mod            # Go module definition
+├── frontend/              # Next.js frontend application
+│   ├── src/
+│   │   ├── app/          # Next.js app router pages
+│   │   ├── components/  # React components
+│   │   ├── lib/         # Utility libraries
+│   │   └── types/       # TypeScript type definitions
+│   └── package.json
+├── mcp-server/           # Reference MCP server implementation
+├── docs/                 # Documentation
+│   ├── architecture/    # System architecture docs
+│   ├── security/        # Security documentation
+│   └── specs/          # Technical specifications
+├── scripts/             # Utility scripts
+├── monitoring/          # Prometheus and Grafana configs
+└── docker-compose.yml   # Docker Compose configuration
+```
 
 ## API Documentation
 
-For comprehensive API documentation, see [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md).
-
-### Quick API Reference
+### Core Endpoints
 
 #### MCP Servers
 - `GET /api/v1/mcp/servers` - List all MCP servers
-- `GET /api/v1/mcp/servers/:id` - Get MCP server details
-- `POST /api/v1/mcp/servers` - Add a new MCP server
-- `GET /api/v1/mcp/servers/:id/status` - Get server status
+- `GET /api/v1/mcp/servers/:id` - Get server details
+- `POST /api/v1/mcp/servers` - Register a new MCP server
+- `PUT /api/v1/mcp/servers/:id` - Update server configuration
+- `DELETE /api/v1/mcp/servers/:id` - Remove a server
+- `GET /api/v1/mcp/servers/:id/status` - Get server health status
 
-#### Testing
-- `POST /api/v1/mcp/tests` - Run a test against an MCP server
-- `GET /api/v1/mcp/tests/:id` - Get test results
+#### Server Discovery
+- `POST /api/v1/discovery/scan` - Scan for MCP servers
+- `GET /api/v1/discovery/endpoints` - List discovered endpoints
+- `POST /api/v1/discovery/endpoints/:id/scan` - Scan specific endpoint
+
+#### Security Testing
+- `POST /api/v1/security/test` - Run security tests
+- `GET /api/v1/security/tests/:id` - Get test results
+- `GET /api/v1/security/owasp` - OWASP MCP Top 10 compliance
+
+#### Monitoring
+- `GET /api/v1/monitoring/health/:server_id` - Check server health
+- `POST /api/v1/monitoring/health/check-all` - Check all servers
+- `GET /api/v1/monitoring/servers` - List monitored servers
+- `GET /api/v1/monitoring/alerts` - Get monitoring alerts
 
 #### Health Check
 - `GET /health` - Service health status
 
-### Authentication
-*Coming soon - JWT-based authentication planned*
-
-## Architecture
-
-### Core Components
-
-1. **MCP Discovery**
-   - Automated detection of MCP servers
-   - Endpoint analysis
-   - Service mapping
-
-2. **Threat Detection**
-   - Real-time traffic analysis
-   - Anomaly detection
-   - Pattern recognition
-
-3. **Security Analysis**
-   - Vulnerability assessment
-   - Risk scoring
-   - Compliance checks
+For comprehensive API documentation, see [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md).
 
 ## Configuration
 
-### Environment Variables
+### Backend Configuration
 
-Create a `.env.local` file in the root directory with the following variables:
+The backend uses YAML configuration files located in `backend/configs/`. Copy `config.example.yaml` to `config.yaml` and update with your settings:
+
+```yaml
+server:
+  port: 8080
+  host: "0.0.0.0"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "password"
+  name: "aran_mcp"
+  ssl_mode: "disable"
+
+auth:
+  jwt_secret: "your-secret-key"
+  token_expiry: "24h"
+```
+
+### Frontend Configuration
+
+Create a `.env.local` file in the frontend directory:
 
 ```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:3000/api
-
-# Authentication
+NEXT_PUBLIC_API_URL=http://localhost:8080
 NEXTAUTH_SECRET=your-secret-here
 NEXTAUTH_URL=http://localhost:3000
-
-# Logging
-LOG_LEVEL=info
-
-# Feature Flags
-ENABLE_EXPERIMENTAL_FEATURES=false
 ```
+
+## Security
+
+### Security Best Practices
+
+Aran MCP Sentinel implements comprehensive security measures:
+
+1. **Prompt Injection Detection**: Real-time detection of malicious prompt manipulation attempts
+2. **Tool Poisoning Prevention**: Validation of tool metadata and capabilities
+3. **Privilege Abuse Monitoring**: Tracking and alerting on excessive permissions
+4. **Authentication**: Multiple authentication providers (JWT, Authelia, Clerk, Neon Auth)
+5. **Input Validation**: Comprehensive input sanitization and validation
+6. **Secure Communication**: TLS/SSL for all communications
+7. **Credential Management**: Secure storage and rotation of API keys
+
+### OWASP MCP Top 10
+
+The platform addresses the OWASP MCP Top 10 security risks:
+
+1. Prompt Injection
+2. Tool Poisoning
+3. Privilege Abuse
+4. Tool Shadowing
+5. Indirect Prompt Injection
+6. Sensitive Data Exposure
+7. Command/SQL Injection
+8. Rug Pull Attacks
+9. Denial of Wallet/Service
+10. Authentication Bypass
+
+For detailed security documentation, see [docs/security/SECURITY_ARCHITECTURE.md](docs/security/SECURITY_ARCHITECTURE.md).
 
 ## Development
 
-### Project Structure
-```
-aran-mcp-sentinel/
-├── backend/                 # Go backend application
-│   ├── cmd/server/         # Main application entry point
-│   ├── internal/           # Internal packages
-│   ├── configs/            # Configuration files
-│   └── go.mod              # Go module file
-├── frontend/               # Next.js frontend application
-│   ├── src/                # Source code
-│   ├── public/             # Static assets
-│   └── package.json        # Node.js dependencies
-├── docs/                   # Documentation
-├── deploy/                 # Deployment configurations
-└── README.md              # This file
-```
+### Building the Backend
 
-### Available Scripts
-
-#### Backend (Go)
 ```bash
-# Development
-go run cmd/server/main.go
-
-# Build
-go build -o bin/mcp-sentinel cmd/server/main.go
-
-# Test
-go test ./...
-
-# Lint
-golangci-lint run
+cd backend
+go build -o bin/server cmd/server/main.go
 ```
 
-#### Frontend (Next.js)
-```bash
-# Development
-npm run dev
+### Building the Frontend
 
-# Build
+```bash
+cd frontend
 npm run build
+```
 
-# Start production
-npm start
+### Running Tests
 
-# Lint
-npm run lint
+Backend tests:
+```bash
+cd backend
+go test ./...
+```
 
-# Test
+Frontend tests:
+```bash
+cd frontend
 npm test
 ```
 
-### Code Style
+### Code Quality
 
-This project uses:
-- **Backend**: Go modules, Go 1.21+ features, Gin framework
-- **Frontend**: TypeScript, ESLint, Prettier, Tailwind CSS
-- **Testing**: Go Test, Jest, React Testing Library
-- **Documentation**: Markdown, JSDoc, API documentation
+Backend linting:
+```bash
+cd backend
+golangci-lint run
+```
+
+Frontend linting:
+```bash
+cd frontend
+npm run lint
+```
 
 ## Contributing
 
-We welcome contributions from the community! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions from the community. Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### Quick Start for Contributors
+### Development Workflow
 
-1. **Fork the repository**
-2. **Choose an issue** from our [Issue List](docs/ISSUE_LIST.md)
-3. **Create a feature branch** from `main`
-4. **Make your changes** following our coding standards
-5. **Write tests** for new functionality
-6. **Submit a pull request**
+1. Fork the repository
+2. Create a feature branch from `main`
+3. Make your changes following our coding standards
+4. Write tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
-### Good First Issues
+## Documentation
 
-Looking for a place to start? Check out our [Good First Issues](docs/ISSUE_LIST.md#good-first-issues-beginner-friendly) for beginner-friendly tasks.
+Comprehensive documentation is available in the `docs/` directory:
 
-### Development Setup
-
-See the [Development](#development) section above for setup instructions.
-
-## Roadmap
-
-For detailed information about our development plans and upcoming features, see our [Roadmap](ROADMAP.md).
-
-### Current Focus Areas
-- **Phase 1**: Foundation & Core Features (Q1 2024)
-- **Phase 2**: Security & Monitoring (Q2 2024)
-- **Phase 3**: Advanced Features & Integration (Q3 2024)
-- **Phase 4**: Enterprise & Scale (Q4 2024)
-
-## Support
-
-### Getting Help
-
-- **Documentation**: [docs/](docs/) - Comprehensive documentation
-- **API Reference**: [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) - Complete API documentation
-- **Issues**: [GitHub Issues](https://github.com/radhi1991/aran-mcp-sentinel/issues) - Bug reports and feature requests
-- **Discussions**: [GitHub Discussions](https://github.com/radhi1991/aran-mcp-sentinel/discussions) - Community discussions
-- **Email**: support@aran-mcp-sentinel.com
-
-### Community
-
-- **Discord**: [Join our Discord server](https://discord.gg/aran-mcp-sentinel)
-- **Twitter**: [@AranMcpSentinel](https://twitter.com/AranMcpSentinel)
-- **Blog**: [Blog posts and updates](https://blog.aran-mcp-sentinel.com)
+- [API Documentation](docs/API_DOCUMENTATION.md) - Complete API reference
+- [System Architecture](docs/architecture/SYSTEM_ARCHITECTURE.md) - Architecture overview
+- [Security Architecture](docs/security/SECURITY_ARCHITECTURE.md) - Security design
+- [Roadmap](docs/ROADMAP.md) - Development roadmap
+- [Testing Guide](docs/TESTING_GUIDE.md) - Testing documentation
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Support
+
+For issues, questions, or contributions:
+- GitHub Issues: https://github.com/adhit-r/aran-mcp/issues
+- Documentation: See the `docs/` directory
+
 ## Acknowledgments
 
-- **MCP Protocol**: Built on the [Model Context Protocol](https://modelcontextprotocol.io/)
-- **Open Source**: Thanks to all the open source projects that make this possible
-- **Community**: Special thanks to our contributors and users
+Built on the Model Context Protocol specification. Special thanks to the open source community and contributors.

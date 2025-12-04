@@ -7,6 +7,7 @@ type Config struct {
 	Logging  LoggingConfig  `mapstructure:"logging"`
 	Security SecurityConfig `mapstructure:"security"`
 	Clerk    ClerkConfig    `mapstructure:"clerk"`
+	NeonAuth NeonAuthConfig `mapstructure:"neon_auth"`
 	Supabase SupabaseConfig `mapstructure:"supabase"`
 }
 
@@ -61,4 +62,20 @@ type ClerkConfig struct {
 	// SecretKey can be used by backends that validate sessions via Clerk REST API
 	// (server-side secret). Do NOT commit this to source control.
 	SecretKey string `mapstructure:"secret_key"`
+}
+
+// NeonAuthConfig contains settings for Neon Auth integration
+type NeonAuthConfig struct {
+	// ProjectID is the Neon Auth project ID
+	ProjectID string `mapstructure:"project_id"`
+
+	// PublishableKey is the Neon Auth publishable key (client-side)
+	PublishableKey string `mapstructure:"publishable_key"`
+
+	// SecretKey is the Neon Auth secret key (server-side)
+	// Do NOT commit this to source control.
+	SecretKey string `mapstructure:"secret_key"`
+
+	// Enabled determines if Neon Auth is enabled
+	Enabled bool `mapstructure:"enabled" default:"false"`
 }

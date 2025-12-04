@@ -77,116 +77,41 @@ const CustomizableWorkspace: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Mock data
+  // Load workspaces from localStorage (since there's no backend endpoint yet)
   useEffect(() => {
-    const mockWorkspaces: Workspace[] = [
-      {
-        id: '1',
-        name: 'Production Dashboard',
-        description: 'Main production monitoring workspace',
-        isDefault: true,
-        isFavorite: true,
-        layout: 'grid',
-        theme: 'light',
-        widgets: [
-          {
-            id: 'w1',
-            type: 'metrics',
-            title: 'Key Metrics',
-            position: { x: 0, y: 0, w: 4, h: 2 },
-            config: { showUptime: true, showResponseTime: true, showHealthScore: true },
-            isVisible: true
-          },
-          {
-            id: 'w2',
-            type: 'chart',
-            title: 'Performance Trend',
-            position: { x: 4, y: 0, w: 4, h: 2 },
-            config: { chartType: 'line', timeRange: '24h' },
-            isVisible: true
-          },
-          {
-            id: 'w3',
-            type: 'server-list',
-            title: 'Server Status',
-            position: { x: 0, y: 2, w: 6, h: 3 },
-            config: { showHealth: true, showUptime: true },
-            isVisible: true
-          },
-          {
-            id: 'w4',
-            type: 'alerts',
-            title: 'Recent Alerts',
-            position: { x: 6, y: 2, w: 2, h: 3 },
-            config: { maxItems: 5, showCritical: true },
-            isVisible: true
+    const loadWorkspaces = () => {
+      try {
+        const stored = localStorage.getItem('mcp-workspaces');
+        if (stored) {
+          const parsedWorkspaces: Workspace[] = JSON.parse(stored);
+          setWorkspaces(parsedWorkspaces);
+          const defaultWorkspace = parsedWorkspaces.find(w => w.isDefault) || parsedWorkspaces[0];
+          if (defaultWorkspace) {
+            setActiveWorkspace(defaultWorkspace);
           }
-        ],
-        filters: {
-          status: ['online', 'warning'],
-          type: ['API', 'Database'],
-          organization: ['Production'],
-          healthScore: [70, 100],
-          timeRange: '24h'
-        },
-        notifications: {
-          email: true,
-          push: true,
-          sms: false,
-          criticalOnly: true,
-          frequency: 'immediate'
-        },
-        createdAt: '2024-01-15T10:00:00Z',
-        updatedAt: '2024-01-20T14:30:00Z'
-      },
-      {
-        id: '2',
-        name: 'Development Overview',
-        description: 'Development environment monitoring',
-        isDefault: false,
-        isFavorite: false,
-        layout: 'list',
-        theme: 'dark',
-        widgets: [
-          {
-            id: 'w5',
-            type: 'metrics',
-            title: 'Dev Metrics',
-            position: { x: 0, y: 0, w: 3, h: 2 },
-            config: { showUptime: true, showResponseTime: false, showHealthScore: true },
-            isVisible: true
-          },
-          {
-            id: 'w6',
-            type: 'server-list',
-            title: 'Dev Servers',
-            position: { x: 0, y: 2, w: 6, h: 4 },
-            config: { showHealth: true, showUptime: false },
-            isVisible: true
-          }
-        ],
-        filters: {
-          status: ['online', 'offline', 'warning'],
-          type: ['API', 'Database', 'Cache'],
-          organization: ['Development'],
-          healthScore: [0, 100],
-          timeRange: '7d'
-        },
-        notifications: {
-          email: false,
-          push: true,
-          sms: false,
-          criticalOnly: false,
-          frequency: 'hourly'
-        },
-        createdAt: '2024-01-18T09:00:00Z',
-        updatedAt: '2024-01-19T16:45:00Z'
+        } else {
+          // No workspaces stored - start with empty array
+          setWorkspaces([]);
+        }
+      } catch (error) {
+        console.error('Failed to load workspaces from localStorage:', error);
+        setWorkspaces([]);
       }
-    ];
+    };
 
-    setWorkspaces(mockWorkspaces);
-    setActiveWorkspace(mockWorkspaces[0]);
+    loadWorkspaces();
   }, []);
+
+  // Save workspaces to localStorage whenever they change
+  useEffect(() => {
+    if (workspaces.length > 0) {
+      try {
+        localStorage.setItem('mcp-workspaces', JSON.stringify(workspaces));
+      } catch (error) {
+        console.error('Failed to save workspaces to localStorage:', error);
+      }
+    }
+  }, [workspaces]);
 
   const handleCreateWorkspace = () => {
     const newWorkspace: Workspace = {

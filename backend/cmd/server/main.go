@@ -16,12 +16,12 @@ import (
 	"github.com/radhi1991/aran-mcp-sentinel/internal/auth"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/config"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/database"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/discovery"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/middleware"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/security"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/supabase"
 	"go.uber.org/zap"
 )
 
@@ -62,16 +62,30 @@ func main() {
 	// Initialize repository
 	repo := database.NewRepository(dbConn.DB, logger)
 
-	// JWT manager removed - using Authelia for authentication
-
-	// Initialize Supabase client (for legacy compatibility)
-	supabaseClient, err := supabase.NewClientWithConfig(cfg.Supabase.URL, cfg.Supabase.Key)
-	if err != nil {
-		logger.Fatal("Failed to initialize Supabase client", zap.Error(err))
+	// Initialize Neon Auth handler if enabled
+	var neonAuthHandler *auth.NeonAuthHandler
+	if cfg.NeonAuth.Enabled && cfg.NeonAuth.ProjectID != "" && cfg.NeonAuth.SecretKey != "" {
+		neonAuthHandler = auth.NewNeonAuthHandler(
+			cfg.NeonAuth.ProjectID,
+			cfg.NeonAuth.PublishableKey,
+			cfg.NeonAuth.SecretKey,
+			logger,
+		)
+		logger.Info("Neon Auth enabled", zap.String("project_id", cfg.NeonAuth.ProjectID))
 	}
 
-	// Initialize legacy MCP repository
-	legacyRepo := repository.NewMCPServerRepository(supabaseClient)
+	// Initialize JWT manager (for legacy compatibility)
+	jwtManager := auth.NewJWTManager(auth.JWTConfig{
+		SecretKey:     cfg.JWT.SecretKey,
+		AccessExpiry:  time.Duration(cfg.JWT.AccessExpiry) * time.Minute,
+		RefreshExpiry: time.Duration(cfg.JWT.RefreshExpiry) * time.Hour,
+	})
+
+	// Initialize auth handler with all supported methods
+	authHandler := auth.NewAuthHandler(repo, jwtManager, neonAuthHandler, logger)
+
+	// Initialize alerts handler
+	alertsHandler := monitoring.NewAlertsHandler(dbConn.DB.DB)
 
 	// Initialize Gin router
 	r := gin.New()
@@ -143,9 +157,19 @@ func main() {
 
 	// API v1 routes
 	api := r.Group("/api/v1")
+
+	// Register MCP routes (temporarily unprotected for testing)
+	mcpGroup := r.Group("/api/v1/mcp")
+	mcpRepo := repository.NewMCPRepositoryAdapter(repo)
+	mcpHandler := mcp.NewHandler(logger, mcpRepo)
+	mcpHandler.RegisterRoutes(mcpGroup)
+	discoverySvc := discovery.NewMCPDiscoveryService(logger)
+	monitorSvc := monitoring.NewMCPMonitor(dbConn.DB.DB, logger, nil)
+	enhancedHandler := mcp.NewEnhancedHandler(dbConn.DB.DB, logger, discoverySvc, monitorSvc)
+	enhancedHandler.RegisterEnhancedRoutes(mcpGroup)
+
 	{
 		// Authentication endpoints (no auth required)
-		authHandler := auth.NewAutheliaHandler(logger)
 		authHandler.RegisterRoutes(api)
 
 		// Protected routes (require authentication)
@@ -155,30 +179,46 @@ func main() {
 		if os.Getenv("USE_CLERK_AUTH") == "true" || cfg.Clerk.JWKSURL != "" {
 			useClerk = true
 		}
-		if useClerk {
+
+		useNeonAuth := cfg.NeonAuth.Enabled && cfg.NeonAuth.ProjectID != ""
+
+		// Feature flag for MCP authentication
+		enableMCPAuth := os.Getenv("ENABLE_MCP_AUTH") == "true"
+
+		if useNeonAuth {
+			logger.Info("Using Neon Auth middleware for authentication")
+			neonMiddleware := neonAuthHandler.NeonAuthMiddleware()
+			if enableMCPAuth {
+				api.Group("/mcp", neonMiddleware)
+			}
+			protected.Use(neonMiddleware)
+		} else if useClerk {
 			logger.Info("Using Clerk middleware for authentication")
-			protected.Use(func(c *gin.Context) {
-				// placeholder - actual Clerk middleware is registered below
-				c.Next()
-			})
-			// Register Clerk middleware with proper settings
-			protected.Use(auth.ClerkMiddleware(cfg.Clerk.JWKSURL, cfg.Clerk.Issuer, cfg.Clerk.Audience, logger))
+			clerkMiddleware := auth.ClerkMiddleware(cfg.Clerk.JWKSURL, cfg.Clerk.Issuer, cfg.Clerk.Audience, logger)
+			if enableMCPAuth {
+				api.Group("/mcp", clerkMiddleware)
+			}
+			protected.Use(clerkMiddleware)
 		} else {
 			// Use Authelia middleware for authentication
-			protected.Use(auth.AutheliaMiddleware(logger))
+			autheliaMiddleware := auth.AutheliaMiddleware(logger)
+			if enableMCPAuth {
+				api.Group("/mcp", autheliaMiddleware)
+			}
+			protected.Use(autheliaMiddleware)
 		}
+
+		// Register MCP routes (conditionally protected)
+		// mcpGroup := api.Group("/mcp")
+		// mcpRepo := repository.NewMCPRepositoryAdapter(repo)
+		// mcpHandler := mcp.NewHandler(logger, mcpRepo)
+		// mcpHandler.RegisterRoutes(mcpGroup)
+		// discoverySvc := discovery.NewMCPDiscoveryService(logger)
+		// monitorSvc := monitoring.NewMCPMonitor(dbConn.DB.DB, logger, nil)
+		// enhancedHandler := mcp.NewEnhancedHandler(dbConn.DB.DB, logger, discoverySvc, monitorSvc)
+		// enhancedHandler.RegisterEnhancedRoutes(mcpGroup)
+
 		{
-			// MCP endpoints
-			mcpGroup := protected.Group("/mcp")
-
-			// Initialize legacy MCP handler with repository
-			mcpHandler := mcp.NewHandler(logger, legacyRepo)
-			mcpHandler.RegisterRoutes(mcpGroup)
-
-			// Initialize enhanced MCP handler with real functionality
-			enhancedHandler := mcp.NewEnhancedHandler(dbConn.DB, logger)
-			enhancedHandler.RegisterEnhancedRoutes(mcpGroup)
-
 			// Monitoring endpoints
 			monitoringHandler := monitoring.NewHandler(repo, logger)
 			monitoringHandler.RegisterRoutes(protected)
@@ -186,6 +226,14 @@ func main() {
 			// Security testing endpoints
 			securityHandler := security.NewHandler(logger)
 			securityHandler.RegisterRoutes(protected)
+
+			// Alerts endpoints
+			alertsHandler.RegisterRoutes(protected)
+
+			// Discovery endpoints (including endpoint scanning)
+			// Endpoint scanning doesn't require repository, so we pass nil
+			discoveryHandler := discovery.NewDiscoveryHandler(logger, nil)
+			discoveryHandler.RegisterRoutes(protected)
 		}
 	}
 

@@ -9,6 +9,10 @@ export default function Page() {
           <p className="text-aran-gray-600">Sign in to your account</p>
         </div>
         <SignIn 
+          routing="path"
+          path="/sign-in"
+          signUpUrl="/sign-up"
+          afterSignInUrl="/dashboard"
           appearance={{
             elements: {
               rootBox: "mx-auto",

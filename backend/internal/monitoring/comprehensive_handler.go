@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/database"
 	"go.uber.org/zap"
 )
 
@@ -15,15 +16,17 @@ type ComprehensiveHealthHandler struct {
 	logger          *zap.Logger
 	healthChecker   *HealthChecker
 	enhancedMonitor *EnhancedHealthMonitor
+	repo            *database.Repository
 }
 
 // NewComprehensiveHealthHandler creates a new comprehensive health handler
-func NewComprehensiveHealthHandler(logger *zap.Logger, healthChecker *HealthChecker) *ComprehensiveHealthHandler {
+func NewComprehensiveHealthHandler(logger *zap.Logger, healthChecker *HealthChecker, repo *database.Repository) *ComprehensiveHealthHandler {
 	enhancedMonitor := NewEnhancedHealthMonitor(logger)
 	return &ComprehensiveHealthHandler{
 		logger:          logger,
 		healthChecker:   healthChecker,
 		enhancedMonitor: enhancedMonitor,
+		repo:            repo,
 	}
 }
 
@@ -54,7 +57,7 @@ func (h *ComprehensiveHealthHandler) GetComprehensiveHealth(c *gin.Context) {
 	}
 
 	// Get server details
-	server, err := h.healthChecker.repo.GetMCPServer(c.Request.Context(), id.String())
+	server, err := h.repo.GetMCPServer(c.Request.Context(), id.String())
 	if err != nil {
 		h.logger.Error("Failed to get server", zap.String("server_id", serverID), zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
@@ -102,7 +105,7 @@ func (h *ComprehensiveHealthHandler) PerformComprehensiveCheck(c *gin.Context) {
 	}
 
 	// Get server details
-	server, err := h.healthChecker.repo.GetMCPServer(c.Request.Context(), id.String())
+	server, err := h.repo.GetMCPServer(c.Request.Context(), id.String())
 	if err != nil {
 		h.logger.Error("Failed to get server", zap.String("server_id", serverID), zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
@@ -149,7 +152,7 @@ func (h *ComprehensiveHealthHandler) GetHealthMetrics(c *gin.Context) {
 	}
 
 	// Get server details
-	server, err := h.healthChecker.repo.GetMCPServer(c.Request.Context(), id.String())
+	server, err := h.repo.GetMCPServer(c.Request.Context(), id.String())
 	if err != nil {
 		h.logger.Error("Failed to get server", zap.String("server_id", serverID), zap.Error(err))
 		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})

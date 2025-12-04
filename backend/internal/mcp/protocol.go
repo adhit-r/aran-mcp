@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
 	"go.uber.org/zap"
 )
 
@@ -16,96 +17,6 @@ import (
 type MCPProtocol struct {
 	logger *zap.Logger
 	client *http.Client
-}
-
-// MCPRequest represents a standard MCP request
-type MCPRequest struct {
-	JSONRPC string      `json:"jsonrpc"`
-	ID      interface{} `json:"id"`
-	Method  string      `json:"method"`
-	Params  interface{} `json:"params,omitempty"`
-}
-
-// MCPResponse represents a standard MCP response
-type MCPResponse struct {
-	JSONRPC string      `json:"jsonrpc"`
-	ID      interface{} `json:"id"`
-	Result  interface{} `json:"result,omitempty"`
-	Error   *MCPError   `json:"error,omitempty"`
-}
-
-// MCPError represents an MCP error
-type MCPError struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
-// MCPServerInfo represents server information
-type MCPServerInfo struct {
-	Name         string            `json:"name"`
-	Version      string            `json:"version"`
-	Description  string            `json:"description,omitempty"`
-	Capabilities MCPCapabilities   `json:"capabilities"`
-	Metadata     map[string]string `json:"metadata,omitempty"`
-}
-
-// MCPCapabilities represents server capabilities
-type MCPCapabilities struct {
-	Tools     *MCPToolsCapability     `json:"tools,omitempty"`
-	Resources *MCPResourcesCapability `json:"resources,omitempty"`
-	Prompts   *MCPPromptsCapability   `json:"prompts,omitempty"`
-	Logging   *MCPLoggingCapability   `json:"logging,omitempty"`
-}
-
-// MCPToolsCapability represents tools capability
-type MCPToolsCapability struct {
-	ListChanged bool `json:"listChanged,omitempty"`
-}
-
-// MCPResourcesCapability represents resources capability
-type MCPResourcesCapability struct {
-	Subscribe   bool `json:"subscribe,omitempty"`
-	ListChanged bool `json:"listChanged,omitempty"`
-}
-
-// MCPPromptsCapability represents prompts capability
-type MCPPromptsCapability struct {
-	ListChanged bool `json:"listChanged,omitempty"`
-}
-
-// MCPLoggingCapability represents logging capability
-type MCPLoggingCapability struct {
-	Level string `json:"level,omitempty"`
-}
-
-// MCPTool represents an MCP tool
-type MCPTool struct {
-	Name        string                 `json:"name"`
-	Description string                 `json:"description,omitempty"`
-	InputSchema map[string]interface{} `json:"inputSchema"`
-}
-
-// MCPResource represents an MCP resource
-type MCPResource struct {
-	URI         string `json:"uri"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	MimeType    string `json:"mimeType,omitempty"`
-}
-
-// MCPPrompt represents an MCP prompt
-type MCPPrompt struct {
-	Name        string                   `json:"name"`
-	Description string                   `json:"description,omitempty"`
-	Arguments   []MCPPromptArgument      `json:"arguments,omitempty"`
-}
-
-// MCPPromptArgument represents a prompt argument
-type MCPPromptArgument struct {
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	Required    bool   `json:"required,omitempty"`
 }
 
 // NewMCPProtocol creates a new MCP protocol client
@@ -119,8 +30,8 @@ func NewMCPProtocol(logger *zap.Logger) *MCPProtocol {
 }
 
 // Initialize performs MCP server initialization handshake
-func (m *MCPProtocol) Initialize(ctx context.Context, serverURL string) (*MCPServerInfo, error) {
-	request := MCPRequest{
+func (m *MCPProtocol) Initialize(ctx context.Context, serverURL string) (*common.MCPServerInfo, error) {
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      1,
 		Method:  "initialize",
@@ -148,13 +59,13 @@ func (m *MCPProtocol) Initialize(ctx context.Context, serverURL string) (*MCPSer
 		return nil, fmt.Errorf("MCP server returned error: %s", response.Error.Message)
 	}
 
-	var serverInfo MCPServerInfo
+	var serverInfo common.MCPServerInfo
 	if err := json.Unmarshal([]byte(fmt.Sprintf("%v", response.Result)), &serverInfo); err != nil {
 		return nil, fmt.Errorf("failed to parse server info: %w", err)
 	}
 
 	// Send initialized notification
-	notification := MCPRequest{
+	notification := common.MCPRequest{
 		JSONRPC: "2.0",
 		Method:  "notifications/initialized",
 	}
@@ -168,8 +79,8 @@ func (m *MCPProtocol) Initialize(ctx context.Context, serverURL string) (*MCPSer
 }
 
 // ListTools retrieves available tools from MCP server
-func (m *MCPProtocol) ListTools(ctx context.Context, serverURL string) ([]MCPTool, error) {
-	request := MCPRequest{
+func (m *MCPProtocol) ListTools(ctx context.Context, serverURL string) ([]common.MCPTool, error) {
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      2,
 		Method:  "tools/list",
@@ -185,7 +96,7 @@ func (m *MCPProtocol) ListTools(ctx context.Context, serverURL string) ([]MCPToo
 	}
 
 	var result struct {
-		Tools []MCPTool `json:"tools"`
+		Tools []common.MCPTool `json:"tools"`
 	}
 
 	resultBytes, _ := json.Marshal(response.Result)
@@ -197,8 +108,8 @@ func (m *MCPProtocol) ListTools(ctx context.Context, serverURL string) ([]MCPToo
 }
 
 // ListResources retrieves available resources from MCP server
-func (m *MCPProtocol) ListResources(ctx context.Context, serverURL string) ([]MCPResource, error) {
-	request := MCPRequest{
+func (m *MCPProtocol) ListResources(ctx context.Context, serverURL string) ([]common.MCPResource, error) {
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      3,
 		Method:  "resources/list",
@@ -214,7 +125,7 @@ func (m *MCPProtocol) ListResources(ctx context.Context, serverURL string) ([]MC
 	}
 
 	var result struct {
-		Resources []MCPResource `json:"resources"`
+		Resources []common.MCPResource `json:"resources"`
 	}
 
 	resultBytes, _ := json.Marshal(response.Result)
@@ -226,8 +137,8 @@ func (m *MCPProtocol) ListResources(ctx context.Context, serverURL string) ([]MC
 }
 
 // ListPrompts retrieves available prompts from MCP server
-func (m *MCPProtocol) ListPrompts(ctx context.Context, serverURL string) ([]MCPPrompt, error) {
-	request := MCPRequest{
+func (m *MCPProtocol) ListPrompts(ctx context.Context, serverURL string) ([]common.MCPPrompt, error) {
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      4,
 		Method:  "prompts/list",
@@ -243,7 +154,7 @@ func (m *MCPProtocol) ListPrompts(ctx context.Context, serverURL string) ([]MCPP
 	}
 
 	var result struct {
-		Prompts []MCPPrompt `json:"prompts"`
+		Prompts []common.MCPPrompt `json:"prompts"`
 	}
 
 	resultBytes, _ := json.Marshal(response.Result)
@@ -256,7 +167,7 @@ func (m *MCPProtocol) ListPrompts(ctx context.Context, serverURL string) ([]MCPP
 
 // CallTool executes a tool on the MCP server
 func (m *MCPProtocol) CallTool(ctx context.Context, serverURL, toolName string, arguments map[string]interface{}) (interface{}, error) {
-	request := MCPRequest{
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      5,
 		Method:  "tools/call",
@@ -280,7 +191,7 @@ func (m *MCPProtocol) CallTool(ctx context.Context, serverURL, toolName string, 
 
 // ReadResource reads a resource from the MCP server
 func (m *MCPProtocol) ReadResource(ctx context.Context, serverURL, resourceURI string) (interface{}, error) {
-	request := MCPRequest{
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      6,
 		Method:  "resources/read",
@@ -303,7 +214,7 @@ func (m *MCPProtocol) ReadResource(ctx context.Context, serverURL, resourceURI s
 
 // Ping checks if MCP server is responsive
 func (m *MCPProtocol) Ping(ctx context.Context, serverURL string) error {
-	request := MCPRequest{
+	request := common.MCPRequest{
 		JSONRPC: "2.0",
 		ID:      99,
 		Method:  "ping",
@@ -322,7 +233,7 @@ func (m *MCPProtocol) Ping(ctx context.Context, serverURL string) error {
 }
 
 // sendRequest sends an HTTP request to the MCP server
-func (m *MCPProtocol) sendRequest(ctx context.Context, serverURL string, request MCPRequest) (*MCPResponse, error) {
+func (m *MCPProtocol) sendRequest(ctx context.Context, serverURL string, request common.MCPRequest) (*common.MCPResponse, error) {
 	requestBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
@@ -363,7 +274,7 @@ func (m *MCPProtocol) sendRequest(ctx context.Context, serverURL string, request
 		zap.ByteString("body", responseBody),
 	)
 
-	var mcpResponse MCPResponse
+	var mcpResponse common.MCPResponse
 	if err := json.Unmarshal(responseBody, &mcpResponse); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}

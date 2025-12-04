@@ -5,12 +5,12 @@ server:
   write_timeout: 30
 
 database:
-  host: localhost
+  host: ep-weathered-bird-ad6xenio-pooler.c-2.us-east-1.aws.neon.tech
   port: 5432
-  user: adhi
-  password: 
-  name: aran_mcp
-  ssl_mode: disable
+  user: neondb_owner
+  password: npg_cEMR02aUdGkC
+  name: neondb
+  ssl_mode: require
 
 jwt:
   secret: ${JWT_SECRET:your-super-secret-jwt-key-change-in-production}
@@ -23,6 +23,18 @@ logging:
 security:
   rate_limit: 100
   enable_https: false
+
+clerk:
+  jwks_url: ""
+  issuer: ""
+  audience: ""
+  secret_key: ""
+
+neon_auth:
+  enabled: false
+  project_id: ""
+  publishable_key: ""
+  secret_key: ""
 
 supabase:
   url: http://localhost:8000

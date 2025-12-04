@@ -44,34 +44,15 @@ export const fetchServers = async (): Promise<MCPServer[]> => {
     console.log('Fetching servers from API...');
     const response = await api.get('/mcp/servers');
     console.log('Servers response:', response.data);
-    return response.data.servers || [];
-  } catch (error) {
+    return response.data.servers || response.data.data || [];
+  } catch (error: any) {
     console.error('Error fetching servers:', error);
-    // Return mock data when backend is not available
-    return [
-      {
-        id: '1',
-        name: 'Filesystem Server',
-        url: 'http://localhost:3001',
-        status: 'online',
-        lastChecked: new Date().toISOString(),
-        responseTime: 120,
-        uptime: 99.9,
-        errorRate: 0.1,
-        version: '1.0.0'
-      },
-      {
-        id: '2',
-        name: 'Database Server',
-        url: 'http://localhost:3002',
-        status: 'offline',
-        lastChecked: new Date().toISOString(),
-        responseTime: 0,
-        uptime: 95.5,
-        errorRate: 2.3,
-        version: '1.2.0'
-      }
-    ];
+    // Throw error instead of returning mock data
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch servers from backend'
+    );
   }
 };
 
@@ -79,19 +60,14 @@ export const fetchServerStatus = async (serverId: string): Promise<ServerStatus>
   try {
     const response = await api.get(`/mcp/servers/${serverId}/status`);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fetching status for server ${serverId}:`, error);
-    // Return mock data when backend is not available
-    return {
-      serverId,
-      status: serverId === '1' ? 'online' : 'offline',
-      responseTime: serverId === '1' ? 120 : 0,
-      uptime: serverId === '1' ? 99.9 : 95.5,
-      errorRate: serverId === '1' ? 0.1 : 2.3,
-      version: serverId === '1' ? '1.0.0' : '1.2.0',
-      lastChecked: new Date().toISOString(),
-      metrics: []
-    };
+    // Throw error instead of returning mock data
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      `Failed to fetch status for server ${serverId}`
+    );
   }
 };
 
@@ -156,40 +132,21 @@ export interface Alert {
 
 export async function getAlerts(limit: number = 10): Promise<Alert[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/mcp/alerts?limit=${limit}`);
-    return response.data;
-  } catch (error) {
+    const response = await axios.get(`${API_BASE_URL}/mcp/monitoring/alerts?limit=${limit}`);
+    const data = response.data;
+    // Handle different response formats
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return data.alerts || data.data || [];
+  } catch (error: any) {
     console.error('Error fetching alerts:', error);
-    // Return mock data when backend is not available
-    return [
-      {
-        id: '1',
-        serverId: '2',
-        type: 'status_change',
-        message: 'Server went offline',
-        severity: 'critical',
-        read: false,
-        createdAt: new Date(Date.now() - 300000).toISOString() // 5 minutes ago
-      },
-      {
-        id: '2',
-        serverId: '1',
-        type: 'performance',
-        message: 'High response time detected',
-        severity: 'warning',
-        read: false,
-        createdAt: new Date(Date.now() - 600000).toISOString() // 10 minutes ago
-      },
-      {
-        id: '3',
-        serverId: '1',
-        type: 'error',
-        message: 'Connection timeout',
-        severity: 'info',
-        read: true,
-        createdAt: new Date(Date.now() - 900000).toISOString() // 15 minutes ago
-      }
-    ];
+    // Throw error instead of returning mock data
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch alerts from backend'
+    );
   }
 }
 
@@ -237,48 +194,19 @@ export async function fetchProductionServers(): Promise<ProductionMCPServer[]> {
     console.log('Fetching production servers from API...');
     const response = await api.get('/mcp/presets');
     console.log('Production servers response:', response.data);
-    return response.data.presets || [];
-  } catch (error) {
+    // Handle different response formats
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+    return response.data.presets || response.data.data || [];
+  } catch (error: any) {
     console.error('Error fetching production servers:', error);
-    // Return mock production servers when backend is not available
-    return [
-      {
-        id: 'preset-1',
-        name: 'PostgreSQL Database',
-        description: 'Production PostgreSQL database server with high availability',
-        category: 'Database',
-        version: '15.3',
-        status: 'active',
-        features: ['High Availability', 'Backup & Recovery', 'Monitoring'],
-        endpoints: ['postgresql://prod-db:5432/mydb'],
-        documentation: 'https://docs.example.com/postgresql',
-        tags: ['database', 'postgresql', 'production']
-      },
-      {
-        id: 'preset-2',
-        name: 'Redis Cache',
-        description: 'High-performance Redis cache for session management',
-        category: 'Cache',
-        version: '7.0',
-        status: 'active',
-        features: ['Clustering', 'Persistence', 'Pub/Sub'],
-        endpoints: ['redis://cache-cluster:6379'],
-        documentation: 'https://docs.example.com/redis',
-        tags: ['cache', 'redis', 'session']
-      },
-      {
-        id: 'preset-3',
-        name: 'Elasticsearch Cluster',
-        description: 'Distributed search and analytics engine',
-        category: 'Search',
-        version: '8.8.0',
-        status: 'active',
-        features: ['Full-text Search', 'Analytics', 'Real-time'],
-        endpoints: ['http://es-cluster:9200'],
-        documentation: 'https://docs.example.com/elasticsearch',
-        tags: ['search', 'elasticsearch', 'analytics']
-      }
-    ];
+    // Throw error instead of returning mock data
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch production servers from backend'
+    );
   }
 }
 

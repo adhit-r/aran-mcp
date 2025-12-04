@@ -9,29 +9,29 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/discovery"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
 	"go.uber.org/zap"
 )
 
 // EnhancedHandler provides real MCP functionality
 type EnhancedHandler struct {
-	db           *sql.DB
-	logger       *zap.Logger
-	protocol     *MCPProtocol
-	discovery    *discovery.MCPDiscoveryService
-	monitor      *monitoring.MCPMonitor
-	toolManager  *ToolManager
+	db          *sql.DB
+	logger      *zap.Logger
+	protocol    *MCPProtocol
+	discovery   common.MCPDiscoveryService
+	monitor     common.MCPMonitorService
+	toolManager *ToolManager
 }
 
 // NewEnhancedHandler creates a new enhanced MCP handler
-func NewEnhancedHandler(db *sql.DB, logger *zap.Logger) *EnhancedHandler {
+func NewEnhancedHandler(db *sql.DB, logger *zap.Logger, discoverySvc common.MCPDiscoveryService, monitorSvc common.MCPMonitorService) *EnhancedHandler {
+	protocol := NewMCPProtocol(logger)
 	return &EnhancedHandler{
 		db:          db,
 		logger:      logger,
-		protocol:    NewMCPProtocol(logger),
-		discovery:   discovery.NewMCPDiscoveryService(logger),
-		monitor:     monitoring.NewMCPMonitor(db, logger),
+		protocol:    protocol,
+		discovery:   discoverySvc,
+		monitor:     monitorSvc,
 		toolManager: NewToolManager(db, logger),
 	}
 }
@@ -84,11 +84,11 @@ func (h *EnhancedHandler) RegisterEnhancedRoutes(router *gin.RouterGroup) {
 // DiscoverServers performs MCP server discovery
 func (h *EnhancedHandler) DiscoverServers(c *gin.Context) {
 	var req struct {
-		PortRanges    []discovery.PortRange `json:"port_ranges"`
-		NetworkRanges []string              `json:"network_ranges"`
-		KnownPorts    []int                 `json:"known_ports"`
-		Timeout       int                   `json:"timeout_seconds"`
-		MaxConcurrent int                   `json:"max_concurrent"`
+		PortRanges    []common.PortRange `json:"port_ranges"`
+		NetworkRanges []string           `json:"network_ranges"`
+		KnownPorts    []int              `json:"known_ports"`
+		Timeout       int                `json:"timeout_seconds"`
+		MaxConcurrent int                `json:"max_concurrent"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -107,7 +107,7 @@ func (h *EnhancedHandler) DiscoverServers(c *gin.Context) {
 		req.KnownPorts = []int{3000, 3001, 3002, 8000, 8080}
 	}
 
-	config := discovery.DiscoveryConfig{
+	config := common.DiscoveryConfig{
 		PortRanges:    req.PortRanges,
 		NetworkRanges: req.NetworkRanges,
 		KnownPorts:    req.KnownPorts,
@@ -302,7 +302,7 @@ func (h *EnhancedHandler) DiscoverTools(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"tools_discovered": len(tools),
-		"tools":           tools,
+		"tools":            tools,
 	})
 }
 
@@ -317,7 +317,7 @@ func (h *EnhancedHandler) ListTools(c *gin.Context) {
 
 	category := c.Query("category")
 	riskLevel := c.Query("risk_level")
-	
+
 	var enabled *bool
 	if enabledStr := c.Query("enabled"); enabledStr != "" {
 		if e, err := strconv.ParseBool(enabledStr); err == nil {

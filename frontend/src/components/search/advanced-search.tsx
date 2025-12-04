@@ -69,178 +69,147 @@ const AdvancedSearch: React.FC = () => {
 
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Mock data
-  const mockResults: SearchResult[] = [
-    {
-      id: '1',
-      name: 'Production API Server',
-      description: 'Main production API endpoint',
-      status: 'online',
-      type: 'API',
-      organization: 'Production',
-      capabilities: ['REST API', 'Authentication', 'Rate Limiting'],
-      healthScore: 95,
-      lastSeen: '2 minutes ago',
-      responseTime: 120,
-      uptime: 99.8,
-      tags: ['production', 'api', 'critical'],
-      isFavorite: true
-    },
-    {
-      id: '2',
-      name: 'Database Cluster',
-      description: 'Primary database cluster',
-      status: 'online',
-      type: 'Database',
-      organization: 'Production',
-      capabilities: ['SQL', 'Replication', 'Backup'],
-      healthScore: 98,
-      lastSeen: '1 minute ago',
-      responseTime: 85,
-      uptime: 99.9,
-      tags: ['database', 'production', 'critical'],
-      isFavorite: true
-    },
-    {
-      id: '3',
-      name: 'Cache Server',
-      description: 'Redis cache server',
-      status: 'warning',
-      type: 'Cache',
-      organization: 'Production',
-      capabilities: ['Redis', 'Caching', 'Session Storage'],
-      healthScore: 75,
-      lastSeen: '3 minutes ago',
-      responseTime: 250,
-      uptime: 95.2,
-      tags: ['cache', 'redis', 'performance'],
-      isFavorite: false
-    },
-    {
-      id: '4',
-      name: 'File Server',
-      description: 'Network file storage',
-      status: 'offline',
-      type: 'Storage',
-      organization: 'Development',
-      capabilities: ['File Storage', 'NFS', 'Backup'],
-      healthScore: 0,
-      lastSeen: '15 minutes ago',
-      responseTime: 0,
-      uptime: 0,
-      tags: ['storage', 'files', 'development'],
-      isFavorite: false
-    },
-    {
-      id: '5',
-      name: 'Monitoring Server',
-      description: 'System monitoring and metrics',
-      status: 'online',
-      type: 'Monitoring',
-      organization: 'Infrastructure',
-      capabilities: ['Metrics', 'Logging', 'Alerting'],
-      healthScore: 92,
-      lastSeen: '1 minute ago',
-      responseTime: 95,
-      uptime: 99.5,
-      tags: ['monitoring', 'metrics', 'infrastructure'],
-      isFavorite: false
-    }
-  ];
+  // Perform search using backend API
+  const performSearch = async () => {
+    try {
+      setIsSearching(true);
+      setError(null);
 
-  const statusOptions = ['online', 'offline', 'warning'];
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
+      
+      // Build search query parameters
+      const params = new URLSearchParams();
+      if (filters.query) {
+        params.append('query', filters.query);
+      }
+      if (filters.status && filters.status.length > 0) {
+        params.append('status', filters.status.join(','));
+      }
+      if (filters.type && filters.type.length > 0) {
+        params.append('type', filters.type.join(','));
+      }
+      if (filters.organization && filters.organization.length > 0) {
+        params.append('organization', filters.organization.join(','));
+      }
+      if (filters.capabilities && filters.capabilities.length > 0) {
+        params.append('capabilities', filters.capabilities.join(','));
+      }
+      if (filters.healthScore) {
+        params.append('health_score_min', filters.healthScore[0].toString());
+        params.append('health_score_max', filters.healthScore[1].toString());
+      }
+      if (filters.lastSeen) {
+        params.append('last_seen', filters.lastSeen);
+      }
+      params.append('sort_by', filters.sortBy);
+      params.append('sort_order', filters.sortOrder);
+
+      // Use registry search endpoint
+      const response = await fetch(`${API_BASE}/registry/servers?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Transform backend data to SearchResult format
+      const results: SearchResult[] = (data.servers || data.data || []).map((server: any) => ({
+        id: server.id || server.ID,
+        name: server.name || server.Name,
+        description: server.description || server.Description || '',
+        status: (server.status || server.Status || 'unknown').toLowerCase(),
+        type: server.type || server.Type || 'Unknown',
+        organization: server.organization || server.Organization || '',
+        capabilities: server.capabilities || server.Capabilities || [],
+        healthScore: server.health_score || server.HealthScore || 0,
+        lastSeen: formatLastSeen(server.last_seen || server.LastSeen || server.updated_at || server.UpdatedAt),
+        responseTime: server.response_time || server.ResponseTime || 0,
+        uptime: server.uptime_percentage || server.UptimePercentage || 0,
+        tags: server.tags || server.Tags || [],
+        isFavorite: false // Can be enhanced with user preferences
+      }));
+
+      setSearchResults(results);
+    } catch (err: any) {
+      console.error('Search error:', err);
+      setError(err.message || 'Failed to perform search');
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Helper to format last seen time
+  const formatLastSeen = (timestamp: string): string => {
+    if (!timestamp) return 'Never';
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffSecs = Math.floor(diffMs / 1000);
+      
+      if (diffSecs < 60) return `${diffSecs}s ago`;
+      if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`;
+      if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)}h ago`;
+      return `${Math.floor(diffSecs / 86400)}d ago`;
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+  // Trigger search when filters change
+  useEffect(() => {
+    // Only search if there's a query or active filters
+    if (filters.query || 
+        (filters.status && filters.status.length > 0) ||
+        (filters.type && filters.type.length > 0) ||
+        (filters.organization && filters.organization.length > 0)) {
+      performSearch();
+    } else {
+      // Clear results if no search criteria
+      setSearchResults([]);
+    }
+  }, [filters.query, filters.status, filters.type, filters.organization, filters.capabilities, filters.healthScore, filters.lastSeen, filters.sortBy, filters.sortOrder]);
+
+  const statusOptions = ['online', 'offline', 'warning', 'error'];
   const typeOptions = ['API', 'Database', 'Cache', 'Storage', 'Monitoring', 'Web Server'];
   const organizationOptions = ['Production', 'Development', 'Staging', 'Infrastructure'];
   const capabilityOptions = ['REST API', 'Authentication', 'Rate Limiting', 'SQL', 'Replication', 'Backup', 'Redis', 'Caching', 'Session Storage', 'File Storage', 'NFS', 'Metrics', 'Logging', 'Alerting'];
 
+  // Use searchResults directly (already filtered by backend)
   const filteredResults = useMemo(() => {
-    let results = [...mockResults];
+    // Apply client-side sorting if needed (backend should handle this, but fallback)
+    let results = [...searchResults];
 
-    // Text search
-    if (filters.query) {
-      const query = filters.query.toLowerCase();
-      results = results.filter(result => 
-        result.name.toLowerCase().includes(query) ||
-        result.description.toLowerCase().includes(query) ||
-        result.tags.some(tag => tag.toLowerCase().includes(query))
-      );
-    }
-
-    // Status filter
-    if (filters.status.length > 0) {
-      results = results.filter(result => filters.status.includes(result.status));
-    }
-
-    // Type filter
-    if (filters.type.length > 0) {
-      results = results.filter(result => filters.type.includes(result.type));
-    }
-
-    // Organization filter
-    if (filters.organization.length > 0) {
-      results = results.filter(result => filters.organization.includes(result.organization));
-    }
-
-    // Capabilities filter
-    if (filters.capabilities.length > 0) {
-      results = results.filter(result => 
-        filters.capabilities.some(cap => result.capabilities.includes(cap))
-      );
-    }
-
-    // Health score filter
-    results = results.filter(result => 
-      result.healthScore >= filters.healthScore[0] && 
-      result.healthScore <= filters.healthScore[1]
-    );
-
-    // Last seen filter
-    if (filters.lastSeen) {
-      const now = new Date();
-      const filterTime = new Date(now.getTime() - parseInt(filters.lastSeen) * 60 * 1000);
-      results = results.filter(result => {
-        // Mock implementation - in real app, parse lastSeen properly
-        return true;
-      });
-    }
-
-    // Sorting
+    // Client-side sorting as fallback
     results.sort((a, b) => {
-      let aValue: any, bValue: any;
-      
+      let comparison = 0;
       switch (filters.sortBy) {
         case 'name':
-          aValue = a.name;
-          bValue = b.name;
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
           break;
         case 'healthScore':
-          aValue = a.healthScore;
-          bValue = b.healthScore;
+          comparison = a.healthScore - b.healthScore;
           break;
         case 'lastSeen':
-          aValue = a.lastSeen;
-          bValue = b.lastSeen;
-          break;
-        case 'responseTime':
-          aValue = a.responseTime;
-          bValue = b.responseTime;
+          // Simple comparison - could be enhanced
+          comparison = a.lastSeen.localeCompare(b.lastSeen);
           break;
         default:
-          aValue = a.name;
-          bValue = b.name;
+          comparison = 0;
       }
-
-      if (filters.sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
+      return filters.sortOrder === 'asc' ? comparison : -comparison;
     });
 
     return results;
-  }, [filters]);
+  }, [searchResults, filters.sortBy, filters.sortOrder]);
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));

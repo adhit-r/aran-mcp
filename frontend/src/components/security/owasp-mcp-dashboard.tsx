@@ -20,6 +20,7 @@ interface OWASPMCPDashboardProps {
 export function OWASPMCPDashboard({ serverId }: OWASPMCPDashboardProps) {
   const [categories, setCategories] = useState<OWASPMCPCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,102 +30,51 @@ export function OWASPMCPDashboard({ serverId }: OWASPMCPDashboardProps) {
   const loadOWASPMCPData = async () => {
     try {
       setLoading(true);
-      // Mock data for now - replace with actual API call
-      const mockData: OWASPMCPCategory[] = [
-        {
-          id: 'A01',
-          name: 'Broken Access Control',
-          description: 'MCP servers that fail to properly restrict access to resources and functionality',
-          severity: 'HIGH',
-          score: 85,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A02',
-          name: 'Cryptographic Failures',
-          description: 'MCP servers that fail to protect sensitive data in transit and at rest',
-          severity: 'HIGH',
-          score: 70,
-          status: 'WARN',
-          vulnerabilities: 2,
-        },
-        {
-          id: 'A03',
-          name: 'Injection',
-          description: 'MCP servers vulnerable to injection attacks through user input',
-          severity: 'HIGH',
-          score: 90,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A04',
-          name: 'Insecure Design',
-          description: 'MCP servers with fundamental design flaws that compromise security',
-          severity: 'MEDIUM',
-          score: 80,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A05',
-          name: 'Security Misconfiguration',
-          description: 'MCP servers with insecure default configurations or missing security controls',
-          severity: 'MEDIUM',
-          score: 45,
-          status: 'FAIL',
-          vulnerabilities: 3,
-        },
-        {
-          id: 'A06',
-          name: 'Vulnerable and Outdated Components',
-          description: 'MCP servers using components with known vulnerabilities',
-          severity: 'MEDIUM',
-          score: 65,
-          status: 'WARN',
-          vulnerabilities: 1,
-        },
-        {
-          id: 'A07',
-          name: 'Identification and Authentication Failures',
-          description: 'MCP servers with weak authentication mechanisms or session management',
-          severity: 'HIGH',
-          score: 95,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A08',
-          name: 'Software and Data Integrity Failures',
-          description: 'MCP servers that fail to verify software and data integrity',
-          severity: 'MEDIUM',
-          score: 88,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A09',
-          name: 'Security Logging and Monitoring Failures',
-          description: 'MCP servers with insufficient logging and monitoring capabilities',
-          severity: 'LOW',
-          score: 60,
-          status: 'WARN',
-          vulnerabilities: 0,
-        },
-        {
-          id: 'A10',
-          name: 'Server-Side Request Forgery (SSRF)',
-          description: 'MCP servers vulnerable to SSRF attacks through untrusted input',
-          severity: 'HIGH',
-          score: 92,
-          status: 'PASS',
-          vulnerabilities: 0,
-        },
-      ];
-      setCategories(mockData);
-    } catch (error) {
+      
+      // Fetch OWASP categories from backend
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081/api/v1';
+      const url = serverId 
+        ? `${API_BASE}/security/owasp/results/${serverId}`
+        : `${API_BASE}/security/owasp/categories`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch OWASP data: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Transform backend data to component format
+      let categoriesData: OWASPMCPCategory[] = [];
+      
+      if (Array.isArray(data)) {
+        categoriesData = data;
+      } else if (data.categories) {
+        categoriesData = data.categories;
+      } else if (data.data) {
+        categoriesData = Array.isArray(data.data) ? data.data : [data.data];
+      } else if (data.results) {
+        // If we have results for a specific server, transform them
+        categoriesData = Object.entries(data.results || {}).map(([id, result]: [string, any]) => ({
+          id,
+          name: result.name || result.category_name || id,
+          description: result.description || '',
+          severity: (result.severity || result.severity_level || 'MEDIUM').toUpperCase(),
+          score: result.score || result.security_score || 0,
+          status: result.status || (result.passed ? 'PASS' : result.failed ? 'FAIL' : 'WARN'),
+          vulnerabilities: result.vulnerabilities || result.vulnerability_count || 0,
+        }));
+      }
+      
+      // If no data, return empty array (will show empty state)
+      setCategories(categoriesData);
+      setError(null);
+    } catch (error: any) {
       console.error('Failed to load OWASP MCP Top 10 data:', error);
+      setError(error.message || 'Failed to load OWASP security data');
+      // Set empty array on error - component will show error state
+      setCategories([]);
     } finally {
       setLoading(false);
     }
@@ -176,6 +126,40 @@ export function OWASPMCPDashboard({ serverId }: OWASPMCPDashboardProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <Icons.spinner className="h-8 w-8 animate-spin text-aran-orange" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <Icons.alertTriangle className="h-12 w-12 text-red-500" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900">Failed to load security data</h3>
+          <p className="text-sm text-gray-600 mt-2">{error}</p>
+          <button
+            onClick={loadOWASPMCPData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <Icons.shield className="h-12 w-12 text-gray-400" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900">No security data available</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            {serverId 
+              ? 'No security assessment data found for this server.'
+              : 'No security categories found. Run a security assessment to see results.'}
+          </p>
+        </div>
       </div>
     );
   }

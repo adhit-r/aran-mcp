@@ -9,17 +9,19 @@ import { RealMCPDashboard } from '@/components/dashboard/real-mcp-dashboard';
 import { EnhancedServerManager } from '@/components/servers/enhanced-server-manager';
 import { ToolExplorer } from '@/components/tools/tool-explorer';
 import { RealTimeMonitor } from '@/components/monitoring/real-time-monitor';
+import { EndpointScanner } from '@/components/discovery/endpoint-scanner';
 import { 
   LayoutDashboard, 
   Server, 
-  Tool, 
+  Wrench as Tool, 
   Activity, 
   Settings,
+  Search,
   Menu,
   X
 } from 'lucide-react';
 
-type TabType = 'overview' | 'servers' | 'tools' | 'monitoring' | 'settings';
+type TabType = 'overview' | 'servers' | 'tools' | 'monitoring' | 'discovery' | 'settings';
 
 export default function RealDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -30,6 +32,7 @@ export default function RealDashboardPage() {
     { id: 'servers', label: 'Servers', icon: Server },
     { id: 'tools', label: 'Tools', icon: Tool },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
+    { id: 'discovery', label: 'Discovery', icon: Search },
     { id: 'settings', label: 'Settings', icon: Settings },
   ] as const;
 
@@ -43,6 +46,8 @@ export default function RealDashboardPage() {
         return <ToolExplorer />;
       case 'monitoring':
         return <RealTimeMonitor />;
+      case 'discovery':
+        return <EndpointScanner />;
       case 'settings':
         return (
           <div className="text-center py-12">

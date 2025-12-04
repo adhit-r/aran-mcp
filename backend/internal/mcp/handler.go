@@ -1,21 +1,32 @@
 package mcp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/models"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
 	"go.uber.org/zap"
 )
 
-type Handler struct {
-	logger *zap.Logger
-	repo   *repository.MCPServerRepository
+// MCPServerRepository defines the interface for MCP server operations
+type MCPServerRepository interface {
+	ListActiveServers(ctx context.Context) ([]models.MCPServer, error)
+	GetServer(ctx context.Context, id uuid.UUID) (*models.MCPServer, error)
+	CreateServer(ctx context.Context, server *models.MCPServer) error
+	GetServerStatus(ctx context.Context, serverID uuid.UUID) (*models.MCPServerStatus, error)
+	UpdateServer(ctx context.Context, server *models.MCPServer) error
+	DeleteServer(ctx context.Context, id uuid.UUID) error
+	GetServerByID(id uuid.UUID) (*models.MCPServer, error)
 }
 
-func NewHandler(logger *zap.Logger, repo *repository.MCPServerRepository) *Handler {
+type Handler struct {
+	logger *zap.Logger
+	repo   MCPServerRepository
+}
+
+func NewHandler(logger *zap.Logger, repo MCPServerRepository) *Handler {
 	return &Handler{
 		logger: logger,
 		repo:   repo,

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { mcpApi, MCPServer, MCPTool } from '@/lib/mcp-api';
-import { Activity, Server, Tool, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { Activity, Server, Wrench as Tool, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export function RealMCPDashboard() {
   const [servers, setServers] = useState<MCPServer[]>([]);

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
 	"go.uber.org/zap"
 )
 
@@ -17,36 +17,9 @@ import (
 type MCPMonitor struct {
 	db       *sql.DB
 	logger   *zap.Logger
-	protocol *mcp.MCPProtocol
-	monitors map[string]*ServerMonitor
+	protocol common.MCPProtocolService
+	monitors map[string]*common.ServerMonitor
 	mu       sync.RWMutex
-}
-
-// ServerMonitor tracks monitoring state for a single server
-type ServerMonitor struct {
-	ServerID     uuid.UUID
-	URL          string
-	Name         string
-	Status       string
-	LastCheck    time.Time
-	ResponseTime time.Duration
-	ErrorCount   int
-	UptimeStart  time.Time
-	Metrics      *ServerMetrics
-	cancel       context.CancelFunc
-}
-
-// ServerMetrics holds detailed metrics for a server
-type ServerMetrics struct {
-	TotalRequests    int64         `json:"total_requests"`
-	SuccessfulReqs   int64         `json:"successful_requests"`
-	FailedRequests   int64         `json:"failed_requests"`
-	AverageResponse  time.Duration `json:"average_response_time"`
-	UptimePercentage float64       `json:"uptime_percentage"`
-	LastError        string        `json:"last_error,omitempty"`
-	ToolsCount       int           `json:"tools_count"`
-	ResourcesCount   int           `json:"resources_count"`
-	PromptsCount     int           `json:"prompts_count"`
 }
 
 // HealthCheckResult represents the result of a health check
@@ -69,24 +42,16 @@ const (
 	AlertLevelCritical AlertLevel = "critical"
 )
 
-// Alert represents a monitoring alert
-type Alert struct {
-	ID        uuid.UUID  `json:"id"`
-	ServerID  uuid.UUID  `json:"server_id"`
-	Level     AlertLevel `json:"level"`
-	Message   string     `json:"message"`
-	Details   string     `json:"details"`
-	Timestamp time.Time  `json:"timestamp"`
-	Resolved  bool       `json:"resolved"`
-}
+// Alert represents a monitoring alert (using common.Alert)
+type Alert = common.Alert
 
 // NewMCPMonitor creates a new MCP monitor
-func NewMCPMonitor(db *sql.DB, logger *zap.Logger) *MCPMonitor {
+func NewMCPMonitor(db *sql.DB, logger *zap.Logger, protocol common.MCPProtocolService) *MCPMonitor {
 	return &MCPMonitor{
 		db:       db,
 		logger:   logger,
-		protocol: mcp.NewMCPProtocol(logger),
-		monitors: make(map[string]*ServerMonitor),
+		protocol: protocol,
+		monitors: make(map[string]*common.ServerMonitor),
 	}
 }
 
@@ -97,19 +62,21 @@ func (m *MCPMonitor) StartMonitoring(serverID uuid.UUID, url, name string, inter
 
 	// Stop existing monitor if any
 	if existing, exists := m.monitors[url]; exists {
-		existing.cancel()
+		if existing.Cancel != nil {
+			existing.Cancel()
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	
-	monitor := &ServerMonitor{
+	monitor := &common.ServerMonitor{
 		ServerID:    serverID,
 		URL:         url,
 		Name:        name,
 		Status:      "unknown",
 		UptimeStart: time.Now(),
-		Metrics:     &ServerMetrics{},
-		cancel:      cancel,
+		Metrics:     &common.ServerMetrics{},
+		Cancel:      cancel,
 	}
 
 	m.monitors[url] = monitor
@@ -133,7 +100,9 @@ func (m *MCPMonitor) StopMonitoring(url string) {
 	defer m.mu.Unlock()
 
 	if monitor, exists := m.monitors[url]; exists {
-		monitor.cancel()
+		if monitor.Cancel != nil {
+			monitor.Cancel()
+		}
 		delete(m.monitors, url)
 		
 		m.logger.Info("Stopped monitoring MCP server",
@@ -143,7 +112,7 @@ func (m *MCPMonitor) StopMonitoring(url string) {
 }
 
 // GetServerStatus returns the current status of a monitored server
-func (m *MCPMonitor) GetServerStatus(url string) (*ServerMonitor, bool) {
+func (m *MCPMonitor) GetServerStatus(url string) (*common.ServerMonitor, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	
@@ -152,11 +121,11 @@ func (m *MCPMonitor) GetServerStatus(url string) (*ServerMonitor, bool) {
 }
 
 // GetAllStatuses returns status for all monitored servers
-func (m *MCPMonitor) GetAllStatuses() []*ServerMonitor {
+func (m *MCPMonitor) GetAllStatuses() []*common.ServerMonitor {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	statuses := make([]*ServerMonitor, 0, len(m.monitors))
+	statuses := make([]*common.ServerMonitor, 0, len(m.monitors))
 	for _, monitor := range m.monitors {
 		statuses = append(statuses, monitor)
 	}
@@ -165,7 +134,7 @@ func (m *MCPMonitor) GetAllStatuses() []*ServerMonitor {
 }
 
 // monitorServer performs continuous monitoring of a single server
-func (m *MCPMonitor) monitorServer(ctx context.Context, monitor *ServerMonitor, interval time.Duration) {
+func (m *MCPMonitor) monitorServer(ctx context.Context, monitor *common.ServerMonitor, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -183,7 +152,7 @@ func (m *MCPMonitor) monitorServer(ctx context.Context, monitor *ServerMonitor, 
 }
 
 // performHealthCheck executes a comprehensive health check
-func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *ServerMonitor) {
+func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *common.ServerMonitor) {
 	checkCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -248,7 +217,6 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *ServerMoni
 	result.ResponseTime = responseTime
 
 	// Calculate uptime percentage
-	totalTime := time.Since(monitor.UptimeStart)
 	if monitor.Metrics.TotalRequests > 0 {
 		monitor.Metrics.UptimePercentage = float64(monitor.Metrics.SuccessfulReqs) / float64(monitor.Metrics.TotalRequests) * 100
 	}
@@ -267,7 +235,7 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *ServerMoni
 }
 
 // performDetailedCheck performs detailed capability and tool checks
-func (m *MCPMonitor) performDetailedCheck(ctx context.Context, monitor *ServerMonitor) (map[string]interface{}, error) {
+func (m *MCPMonitor) performDetailedCheck(ctx context.Context, monitor *common.ServerMonitor) (map[string]interface{}, error) {
 	details := make(map[string]interface{})
 
 	// Initialize server to get capabilities
@@ -315,7 +283,7 @@ func (m *MCPMonitor) performDetailedCheck(ctx context.Context, monitor *ServerMo
 }
 
 // checkPerformanceAlerts checks for performance-related alerts
-func (m *MCPMonitor) checkPerformanceAlerts(monitor *ServerMonitor) {
+func (m *MCPMonitor) checkPerformanceAlerts(monitor *common.ServerMonitor) {
 	// Alert if response time is too high
 	if monitor.ResponseTime > 5*time.Second {
 		m.generateAlert(monitor, AlertLevelWarning, "High response time", 
@@ -339,11 +307,11 @@ func (m *MCPMonitor) checkPerformanceAlerts(monitor *ServerMonitor) {
 }
 
 // generateAlert creates and stores an alert
-func (m *MCPMonitor) generateAlert(monitor *ServerMonitor, level AlertLevel, message, details string) {
-	alert := &Alert{
+func (m *MCPMonitor) generateAlert(monitor *common.ServerMonitor, level AlertLevel, message, details string) {
+	alert := &common.Alert{
 		ID:        uuid.New(),
 		ServerID:  monitor.ServerID,
-		Level:     level,
+		Level:     string(level),
 		Message:   message,
 		Details:   details,
 		Timestamp: time.Now(),
@@ -428,7 +396,7 @@ func (m *MCPMonitor) storeAlert(alert *Alert) error {
 }
 
 // GetServerMetrics returns detailed metrics for a server
-func (m *MCPMonitor) GetServerMetrics(url string) (*ServerMetrics, error) {
+func (m *MCPMonitor) GetServerMetrics(url string) (*common.ServerMetrics, error) {
 	monitor, exists := m.GetServerStatus(url)
 	if !exists {
 		return nil, fmt.Errorf("server not monitored: %s", url)
@@ -438,7 +406,7 @@ func (m *MCPMonitor) GetServerMetrics(url string) (*ServerMetrics, error) {
 }
 
 // GetRecentAlerts returns recent alerts for all servers
-func (m *MCPMonitor) GetRecentAlerts(limit int) ([]*Alert, error) {
+func (m *MCPMonitor) GetRecentAlerts(limit int) ([]*common.Alert, error) {
 	query := `
 		SELECT id, server_id, severity, title, message, created_at, resolved_at IS NOT NULL as resolved
 		FROM alerts 
@@ -453,18 +421,20 @@ func (m *MCPMonitor) GetRecentAlerts(limit int) ([]*Alert, error) {
 	}
 	defer rows.Close()
 
-	var alerts []*Alert
+	var alerts []*common.Alert
 	for rows.Next() {
-		alert := &Alert{}
+		alert := &common.Alert{}
+		var level string
 		err := rows.Scan(
 			&alert.ID,
 			&alert.ServerID,
-			&alert.Level,
+			&level,
 			&alert.Message,
 			&alert.Details,
 			&alert.Timestamp,
 			&alert.Resolved,
 		)
+		alert.Level = level
 		if err != nil {
 			continue
 		}

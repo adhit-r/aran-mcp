@@ -3,7 +3,6 @@ package monitoring
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -11,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// HealthStatus represents the health status of a service component
-type HealthStatus struct {
+// ServiceHealthStatus represents the health status of a service component
+type ServiceHealthStatus struct {
 	Status    string            `json:"status"`
 	Timestamp time.Time         `json:"timestamp"`
 	Duration  string            `json:"duration"`
@@ -21,23 +20,23 @@ type HealthStatus struct {
 
 // HealthResponse represents the overall health response
 type HealthResponse struct {
-	Status     string                   `json:"status"`
-	Timestamp  time.Time                `json:"timestamp"`
-	Version    string                   `json:"version"`
-	Uptime     string                   `json:"uptime"`
-	Components map[string]HealthStatus  `json:"components"`
+	Status     string                      `json:"status"`
+	Timestamp  time.Time                   `json:"timestamp"`
+	Version    string                      `json:"version"`
+	Uptime     string                      `json:"uptime"`
+	Components map[string]ServiceHealthStatus `json:"components"`
 }
 
-// HealthChecker provides health checking functionality
-type HealthChecker struct {
+// ServiceHealthChecker provides health checking functionality for the service itself
+type ServiceHealthChecker struct {
 	db        *sql.DB
 	logger    *zap.Logger
 	startTime time.Time
 }
 
-// NewHealthChecker creates a new health checker
-func NewHealthChecker(db *sql.DB, logger *zap.Logger) *HealthChecker {
-	return &HealthChecker{
+// NewServiceHealthChecker creates a new service health checker
+func NewServiceHealthChecker(db *sql.DB, logger *zap.Logger) *ServiceHealthChecker {
+	return &ServiceHealthChecker{
 		db:        db,
 		logger:    logger,
 		startTime: time.Now(),
@@ -45,7 +44,7 @@ func NewHealthChecker(db *sql.DB, logger *zap.Logger) *HealthChecker {
 }
 
 // CheckHealth performs comprehensive health checks
-func (h *HealthChecker) CheckHealth(c *gin.Context) {
+func (h *ServiceHealthChecker) CheckHealth(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
@@ -53,7 +52,7 @@ func (h *HealthChecker) CheckHealth(c *gin.Context) {
 		Timestamp:  time.Now(),
 		Version:    "1.0.0", // TODO: Get from build info
 		Uptime:     time.Since(h.startTime).String(),
-		Components: make(map[string]HealthStatus),
+		Components: make(map[string]ServiceHealthStatus),
 	}
 
 	// Check database
@@ -81,10 +80,10 @@ func (h *HealthChecker) CheckHealth(c *gin.Context) {
 }
 
 // checkDatabase checks database connectivity and performance
-func (h *HealthChecker) checkDatabase(ctx context.Context) HealthStatus {
+func (h *ServiceHealthChecker) checkDatabase(ctx context.Context) ServiceHealthStatus {
 	start := time.Now()
 	
-	status := HealthStatus{
+	status := ServiceHealthStatus{
 		Timestamp: time.Now(),
 		Details:   make(map[string]string),
 	}
@@ -114,10 +113,10 @@ func (h *HealthChecker) checkDatabase(ctx context.Context) HealthStatus {
 }
 
 // checkMCPConnectivity checks if we can reach MCP servers
-func (h *HealthChecker) checkMCPConnectivity(ctx context.Context) HealthStatus {
+func (h *ServiceHealthChecker) checkMCPConnectivity(ctx context.Context) ServiceHealthStatus {
 	start := time.Now()
 	
-	status := HealthStatus{
+	status := ServiceHealthStatus{
 		Timestamp: time.Now(),
 		Details:   make(map[string]string),
 	}
@@ -147,10 +146,10 @@ func (h *HealthChecker) checkMCPConnectivity(ctx context.Context) HealthStatus {
 }
 
 // checkMemoryUsage checks system memory usage
-func (h *HealthChecker) checkMemoryUsage(ctx context.Context) HealthStatus {
+func (h *ServiceHealthChecker) checkMemoryUsage(ctx context.Context) ServiceHealthStatus {
 	start := time.Now()
 	
-	status := HealthStatus{
+	status := ServiceHealthStatus{
 		Timestamp: time.Now(),
 		Status:    "healthy",
 		Details:   make(map[string]string),
@@ -164,7 +163,7 @@ func (h *HealthChecker) checkMemoryUsage(ctx context.Context) HealthStatus {
 }
 
 // determineOverallStatus determines the overall system status
-func (h *HealthChecker) determineOverallStatus(components map[string]HealthStatus) string {
+func (h *ServiceHealthChecker) determineOverallStatus(components map[string]ServiceHealthStatus) string {
 	hasUnhealthy := false
 	hasDegraded := false
 
@@ -187,7 +186,7 @@ func (h *HealthChecker) determineOverallStatus(components map[string]HealthStatu
 }
 
 // ReadinessCheck provides a simple readiness check
-func (h *HealthChecker) ReadinessCheck(c *gin.Context) {
+func (h *ServiceHealthChecker) ReadinessCheck(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
 	defer cancel()
 
@@ -207,7 +206,7 @@ func (h *HealthChecker) ReadinessCheck(c *gin.Context) {
 }
 
 // LivenessCheck provides a simple liveness check
-func (h *HealthChecker) LivenessCheck(c *gin.Context) {
+func (h *ServiceHealthChecker) LivenessCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "alive",
 		"uptime": time.Since(h.startTime).String(),

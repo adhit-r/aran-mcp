@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
 	"go.uber.org/zap"
 )
@@ -19,38 +18,7 @@ type MCPDiscoveryService struct {
 	logger   *zap.Logger
 	protocol *mcp.MCPProtocol
 	mu       sync.RWMutex
-	servers  map[string]*DiscoveredServer
-}
-
-// DiscoveredServer represents a discovered MCP server
-type DiscoveredServer struct {
-	URL          string                 `json:"url"`
-	Name         string                 `json:"name"`
-	Version      string                 `json:"version"`
-	Description  string                 `json:"description"`
-	Capabilities mcp.MCPCapabilities    `json:"capabilities"`
-	Tools        []mcp.MCPTool          `json:"tools"`
-	Resources    []mcp.MCPResource      `json:"resources"`
-	Prompts      []mcp.MCPPrompt        `json:"prompts"`
-	Status       string                 `json:"status"`
-	LastSeen     time.Time              `json:"last_seen"`
-	ResponseTime time.Duration          `json:"response_time"`
-	Metadata     map[string]interface{} `json:"metadata"`
-}
-
-// DiscoveryConfig holds configuration for MCP discovery
-type DiscoveryConfig struct {
-	PortRanges    []PortRange `json:"port_ranges"`
-	NetworkRanges []string    `json:"network_ranges"`
-	KnownPorts    []int       `json:"known_ports"`
-	Timeout       time.Duration `json:"timeout"`
-	MaxConcurrent int         `json:"max_concurrent"`
-}
-
-// PortRange represents a range of ports to scan
-type PortRange struct {
-	Start int `json:"start"`
-	End   int `json:"end"`
+	servers  map[string]*common.DiscoveredServer
 }
 
 // NewMCPDiscoveryService creates a new MCP discovery service
@@ -58,20 +26,20 @@ func NewMCPDiscoveryService(logger *zap.Logger) *MCPDiscoveryService {
 	return &MCPDiscoveryService{
 		logger:   logger,
 		protocol: mcp.NewMCPProtocol(logger),
-		servers:  make(map[string]*DiscoveredServer),
+		servers:  make(map[string]*common.DiscoveredServer),
 	}
 }
 
 // DiscoverServers performs comprehensive MCP server discovery
-func (d *MCPDiscoveryService) DiscoverServers(ctx context.Context, config DiscoveryConfig) ([]*DiscoveredServer, error) {
+func (d *MCPDiscoveryService) DiscoverServers(ctx context.Context, config common.DiscoveryConfig) ([]*common.DiscoveredServer, error) {
 	d.logger.Info("Starting MCP server discovery",
 		zap.Int("port_ranges", len(config.PortRanges)),
 		zap.Int("network_ranges", len(config.NetworkRanges)),
 		zap.Duration("timeout", config.Timeout),
 	)
 
-	var allServers []*DiscoveredServer
-	
+	var allServers []*common.DiscoveredServer
+
 	// Discover on localhost first (most common)
 	localServers, err := d.discoverLocalServers(ctx, config)
 	if err != nil {
@@ -84,7 +52,7 @@ func (d *MCPDiscoveryService) DiscoverServers(ctx context.Context, config Discov
 	for _, networkRange := range config.NetworkRanges {
 		networkServers, err := d.discoverNetworkServers(ctx, networkRange, config)
 		if err != nil {
-			d.logger.Warn("Failed to discover network servers", 
+			d.logger.Warn("Failed to discover network servers",
 				zap.String("network", networkRange),
 				zap.Error(err),
 			)
@@ -108,9 +76,9 @@ func (d *MCPDiscoveryService) DiscoverServers(ctx context.Context, config Discov
 }
 
 // discoverLocalServers discovers MCP servers on localhost
-func (d *MCPDiscoveryService) discoverLocalServers(ctx context.Context, config DiscoveryConfig) ([]*DiscoveredServer, error) {
-	var servers []*DiscoveredServer
-	
+func (d *MCPDiscoveryService) discoverLocalServers(ctx context.Context, config common.DiscoveryConfig) ([]*common.DiscoveredServer, error) {
+	var servers []*common.DiscoveredServer
+
 	// Common MCP server ports
 	commonPorts := []int{3000, 3001, 3002, 8000, 8001, 8080, 9000}
 	if len(config.KnownPorts) > 0 {
@@ -152,8 +120,8 @@ func (d *MCPDiscoveryService) discoverLocalServers(ctx context.Context, config D
 }
 
 // discoverNetworkServers discovers MCP servers on a network range
-func (d *MCPDiscoveryService) discoverNetworkServers(ctx context.Context, networkRange string, config DiscoveryConfig) ([]*DiscoveredServer, error) {
-	var servers []*DiscoveredServer
+func (d *MCPDiscoveryService) discoverNetworkServers(ctx context.Context, networkRange string, config common.DiscoveryConfig) ([]*common.DiscoveredServer, error) {
+	var servers []*common.DiscoveredServer
 
 	// Parse network range (e.g., "192.168.1.0/24")
 	_, ipNet, err := net.ParseCIDR(networkRange)
@@ -163,7 +131,7 @@ func (d *MCPDiscoveryService) discoverNetworkServers(ctx context.Context, networ
 
 	// Generate IP addresses in range
 	ips := generateIPsInRange(ipNet)
-	
+
 	// Limit concurrent scans
 	semaphore := make(chan struct{}, config.MaxConcurrent)
 	var wg sync.WaitGroup
@@ -195,7 +163,7 @@ func (d *MCPDiscoveryService) discoverNetworkServers(ctx context.Context, networ
 }
 
 // probeServer attempts to connect to and identify an MCP server
-func (d *MCPDiscoveryService) probeServer(ctx context.Context, serverURL string, timeout time.Duration) (*DiscoveredServer, error) {
+func (d *MCPDiscoveryService) probeServer(ctx context.Context, serverURL string, timeout time.Duration) (*common.DiscoveredServer, error) {
 	probeCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
@@ -215,7 +183,7 @@ func (d *MCPDiscoveryService) probeServer(ctx context.Context, serverURL string,
 	responseTime := time.Since(start)
 
 	// Discover capabilities
-	server := &DiscoveredServer{
+	server := &common.DiscoveredServer{
 		URL:          serverURL,
 		Name:         serverInfo.Name,
 		Version:      serverInfo.Version,
@@ -272,7 +240,7 @@ func (d *MCPDiscoveryService) probeServer(ctx context.Context, serverURL string,
 // isServerReachable checks if a server is reachable via HTTP
 func (d *MCPDiscoveryService) isServerReachable(ctx context.Context, serverURL string) bool {
 	client := &http.Client{Timeout: 5 * time.Second}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "HEAD", serverURL, nil)
 	if err != nil {
 		return false
@@ -288,11 +256,11 @@ func (d *MCPDiscoveryService) isServerReachable(ctx context.Context, serverURL s
 }
 
 // GetDiscoveredServers returns all discovered servers
-func (d *MCPDiscoveryService) GetDiscoveredServers() []*DiscoveredServer {
+func (d *MCPDiscoveryService) GetDiscoveredServers() []*common.DiscoveredServer {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
-	servers := make([]*DiscoveredServer, 0, len(d.servers))
+	servers := make([]*common.DiscoveredServer, 0, len(d.servers))
 	for _, server := range d.servers {
 		servers = append(servers, server)
 	}
@@ -301,7 +269,7 @@ func (d *MCPDiscoveryService) GetDiscoveredServers() []*DiscoveredServer {
 }
 
 // RefreshServer updates information for a specific server
-func (d *MCPDiscoveryService) RefreshServer(ctx context.Context, serverURL string) (*DiscoveredServer, error) {
+func (d *MCPDiscoveryService) RefreshServer(ctx context.Context, serverURL string) (*common.DiscoveredServer, error) {
 	server, err := d.probeServer(ctx, serverURL, 10*time.Second)
 	if err != nil {
 		return nil, err
@@ -315,7 +283,7 @@ func (d *MCPDiscoveryService) RefreshServer(ctx context.Context, serverURL strin
 }
 
 // DiscoverFromEnvironment discovers MCP servers from environment variables
-func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*DiscoveredServer {
+func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*common.DiscoveredServer {
 	// Common environment variables that might contain MCP server URLs
 	envVars := []string{
 		"MCP_SERVER_URL",
@@ -323,9 +291,9 @@ func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*DiscoveredServer {
 		"MODEL_CONTEXT_PROTOCOL_URL",
 	}
 
-	var servers []*DiscoveredServer
-	
-	for _, envVar := range envVars {
+	var servers []*common.DiscoveredServer
+
+	for _, _ = range envVars {
 		// This would be implemented to read from environment
 		// For now, return empty slice
 	}
@@ -336,20 +304,20 @@ func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*DiscoveredServer {
 // generateIPsInRange generates all IP addresses in a CIDR range
 func generateIPsInRange(ipNet *net.IPNet) []net.IP {
 	var ips []net.IP
-	
+
 	for ip := ipNet.IP.Mask(ipNet.Mask); ipNet.Contains(ip); incrementIP(ip) {
 		// Skip network and broadcast addresses
 		if !ip.Equal(ipNet.IP) && !isBroadcast(ip, ipNet) {
 			ips = append(ips, make(net.IP, len(ip)))
 			copy(ips[len(ips)-1], ip)
 		}
-		
+
 		// Limit to reasonable number of IPs to scan
 		if len(ips) > 254 {
 			break
 		}
 	}
-	
+
 	return ips
 }
 

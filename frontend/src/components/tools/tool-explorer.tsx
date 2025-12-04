@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { mcpApi, MCPTool, ToolExecution } from '@/lib/mcp-api';
 import { 
-  Tool, 
+  Wrench as Tool, 
   Play, 
   BarChart3, 
   Shield, 

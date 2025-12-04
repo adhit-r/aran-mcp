@@ -2,11 +2,11 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 export default async function Home() {
-  const user = await currentUser();
-
-  if (user) {
-    redirect('/dashboard');
-  }
+  // Temporarily disable authentication check for testing
+  // const user = await currentUser();
+  // if (user) {
+  //   redirect('/dashboard');
+  // }
 
   // Show the home page for unauthenticated users
   return (
@@ -21,18 +21,25 @@ export default async function Home() {
             href="/sign-in"
             className="block w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
           >
-            Sign In
+            Sign In (Demo)
           </a>
           <a
             href="/sign-up"
             className="block w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
           >
-            Sign Up
+            Sign Up (Demo)
           </a>
-          <div className="text-sm text-gray-500 mt-4">
-            <p>Backend API: <span className="font-mono">localhost:8081</span></p>
-            <p>MCP Server: <span className="font-mono">localhost:3001</span></p>
-          </div>
+          <a
+            href="/dashboard?test=true"
+            className="block w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+          >
+            🧪 Skip to Dashboard (Testing)
+          </a>
+        </div>
+        <div className="mt-6 text-sm text-gray-500">
+          <p>Backend: <span className="font-mono">localhost:8081</span></p>
+          <p>MCP Server: <span className="font-mono">localhost:3001</span></p>
+          <p className="mt-2 text-orange-600">⚠️ Auth temporarily disabled for testing</p>
         </div>
       </div>
     </div>

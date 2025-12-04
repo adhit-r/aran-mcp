@@ -16,14 +16,16 @@ import (
 type AuthHandler struct {
 	repo       *database.Repository
 	jwtManager *JWTManager
+	neonAuth   *NeonAuthHandler
 	logger     *zap.Logger
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(repo *database.Repository, jwtManager *JWTManager, logger *zap.Logger) *AuthHandler {
+func NewAuthHandler(repo *database.Repository, jwtManager *JWTManager, neonAuth *NeonAuthHandler, logger *zap.Logger) *AuthHandler {
 	return &AuthHandler{
 		repo:       repo,
 		jwtManager: jwtManager,
+		neonAuth:   neonAuth,
 		logger:     logger,
 	}
 }
@@ -46,7 +48,17 @@ type LoginResponse struct {
 func (h *AuthHandler) RegisterRoutes(router *gin.RouterGroup) {
 	auth := router.Group("/auth")
 	{
-		// Only keep the /me endpoint for Authelia
+		// JWT-based authentication routes
+		auth.POST("/login", h.Login)
+		auth.POST("/refresh", h.RefreshToken)
+		auth.POST("/logout", h.Logout)
+
+		// Neon Auth routes
+		if h.neonAuth != nil {
+			h.neonAuth.RegisterRoutes(auth)
+		}
+
+		// Current user endpoint (supports multiple auth methods)
 		auth.GET("/me", h.GetCurrentUser)
 	}
 }
@@ -199,22 +211,66 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 // GetCurrentUser returns the current authenticated user
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
-	// Get Authelia user information
+	// Try Neon Auth first
+	if h.neonAuth != nil {
+		if neonUser, exists := h.neonAuth.GetNeonUserFromContext(c); exists {
+			c.JSON(http.StatusOK, gin.H{
+				"id":             neonUser.ID,
+				"email":          neonUser.Email,
+				"display_name":   neonUser.DisplayName,
+				"username":       neonUser.Username,
+				"profile_image":  neonUser.ProfileImage,
+				"email_verified": neonUser.EmailVerified,
+				"created_at":     neonUser.CreatedAt,
+				"last_signed_in": neonUser.LastSignedIn,
+				"auth_method":    "neon_auth",
+			})
+			return
+		}
+	}
+
+	// Try Authelia next
 	autheliaUser, exists := GetAutheliaUserFromContext(c)
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated via Authelia"})
+	if exists {
+		c.JSON(http.StatusOK, gin.H{
+			"id":          autheliaUser.Username,
+			"email":       autheliaUser.Email,
+			"name":        autheliaUser.DisplayName,
+			"username":    autheliaUser.Username,
+			"groups":      autheliaUser.Groups,
+			"auth_method": "authelia",
+		})
 		return
 	}
 
-	// Return Authelia user information
-	c.JSON(http.StatusOK, gin.H{
-		"id":          autheliaUser.Username,
-		"email":       autheliaUser.Email,
-		"name":        autheliaUser.DisplayName,
-		"username":    autheliaUser.Username,
-		"groups":      autheliaUser.Groups,
-		"auth_method": "authelia",
-	})
+	// Try JWT-based auth
+	userID, exists := GetUserIDFromContext(c)
+	if exists {
+		// Get user from database
+		userUUID, err := uuid.Parse(userID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+			return
+		}
+
+		user, err := h.repo.GetUserByID(c.Request.Context(), userUUID)
+		if err != nil {
+			h.logger.Error("Failed to get user", zap.Error(err), zap.String("user_id", userID))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user"})
+			return
+		}
+
+		// Remove password hash from response
+		user.PasswordHash = ""
+
+		c.JSON(http.StatusOK, gin.H{
+			"user":        user,
+			"auth_method": "jwt",
+		})
+		return
+	}
+
+	c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
 }
 
 // HashPassword hashes a password using bcrypt
