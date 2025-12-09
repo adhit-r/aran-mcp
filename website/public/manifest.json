@@ -1,0 +1,17 @@
+{
+  "name": "Aran MCP Sentinel",
+  "short_name": "Aran MCP",
+  "description": "Enterprise-grade security and management platform for Model Context Protocol deployments",
+  "start_url": "/aran-mcp/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/aran-mcp/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

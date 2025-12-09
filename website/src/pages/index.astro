@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 
 <BaseLayout 
   title="Enterprise MCP Security Platform"
-  description="Discover, monitor, secure, and manage Model Context Protocol servers with enterprise-grade tooling and real-time threat detection."
+  description="Aran MCP Sentinel is an enterprise-grade security and management platform for Model Context Protocol (MCP) deployments. Discover, monitor, secure, and manage MCP servers with comprehensive tooling, real-time threat detection, and OWASP MCP Top 10 compliance."
 >
   <Header />
   <main>
@@ -17,9 +17,9 @@ import Footer from '../components/Footer.astro';
           Secure Your<br />MCP Infrastructure
         </h1>
         <p class="text-xl md:text-2xl mb-8 text-primary-light max-w-2xl mx-auto">
-          Enterprise-grade security and management platform for Model Context Protocol deployments. Discover, monitor, and protect your MCP servers.
+          Enterprise-grade security and management platform for Model Context Protocol deployments. Discover, monitor, and protect your MCP servers with comprehensive tooling and real-time threat detection.
         </p>
-        <div class="flex gap-4 justify-center">
+        <div class="flex gap-4 justify-center flex-wrap">
           <a 
             href="/docs" 
             class="px-8 py-4 bg-primary text-white font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
@@ -32,32 +32,181 @@ import Footer from '../components/Footer.astro';
           >
             Learn More
           </a>
+          <a 
+            href="https://github.com/adhit-r/aran-mcp" 
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-8 py-4 border-4 border-black font-bold hover:bg-background-alt transition-colors"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- What is MCP Section -->
+    <section class="bg-background-alt py-20">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-4xl md:text-5xl font-black text-center mb-8">What is Model Context Protocol?</h2>
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <p class="text-lg text-primary-light mb-4">
+              Model Context Protocol (MCP) is an open standard that enables AI assistants to securely access external data sources and tools. MCP servers provide structured access to resources, tools, and prompts that AI applications can leverage.
+            </p>
+            <p class="text-lg text-primary-light mb-4">
+              As organizations deploy MCP servers across their infrastructure, they need enterprise-grade tools to discover, monitor, secure, and manage these deployments. Aran MCP Sentinel provides comprehensive tooling for MCP server lifecycle management.
+            </p>
+            <div class="mt-6">
+              <a 
+                href="https://modelcontextprotocol.io" 
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-accent font-bold hover:underline"
+              >
+                Learn more about MCP →
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Features Preview -->
-    <section class="bg-background-alt py-20">
-      <div class="container mx-auto px-4">
-        <h2 class="text-4xl font-black text-center mb-12">Key Capabilities</h2>
-        <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+    <section class="container mx-auto px-4 py-20">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-12">Key Capabilities</h2>
+        <div class="grid md:grid-cols-3 gap-8">
           <div class="bg-white border-4 border-black p-6 shadow-brutal">
             <h3 class="text-2xl font-black mb-4">Server Discovery</h3>
-            <p class="text-primary-light">
-              Automated discovery of MCP endpoints and services across your network infrastructure.
+            <p class="text-primary-light mb-4">
+              Automated discovery of MCP endpoints and services across your network infrastructure. Build a comprehensive catalog of available servers, tools, and resources.
             </p>
+            <ul class="list-disc list-inside space-y-1 text-sm text-primary-light">
+              <li>Network scanning</li>
+              <li>Endpoint detection</li>
+              <li>Version tracking</li>
+            </ul>
+            <a href="/features#discovery" class="text-accent font-bold hover:underline mt-4 inline-block">
+              Learn more →
+            </a>
           </div>
           <div class="bg-white border-4 border-black p-6 shadow-brutal">
             <h3 class="text-2xl font-black mb-4">Security Testing</h3>
-            <p class="text-primary-light">
-              Comprehensive security scanning with OWASP MCP Top 10 compliance checking.
+            <p class="text-primary-light mb-4">
+              Comprehensive security scanning with OWASP MCP Top 10 compliance checking. Automated vulnerability assessment and threat detection.
             </p>
+            <ul class="list-disc list-inside space-y-1 text-sm text-primary-light">
+              <li>OWASP compliance</li>
+              <li>Vulnerability scanning</li>
+              <li>Threat detection</li>
+            </ul>
+            <a href="/features#security" class="text-accent font-bold hover:underline mt-4 inline-block">
+              Learn more →
+            </a>
           </div>
           <div class="bg-white border-4 border-black p-6 shadow-brutal">
             <h3 class="text-2xl font-black mb-4">Real-time Monitoring</h3>
-            <p class="text-primary-light">
-              Continuous health monitoring with alerting and performance metrics tracking.
+            <p class="text-primary-light mb-4">
+              Continuous health monitoring with real-time alerting. Track response times, availability metrics, and performance trends.
             </p>
+            <ul class="list-disc list-inside space-y-1 text-sm text-primary-light">
+              <li>Health checks</li>
+              <li>Performance metrics</li>
+              <li>Alert management</li>
+            </ul>
+            <a href="/features#monitoring" class="text-accent font-bold hover:underline mt-4 inline-block">
+              Learn more →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="bg-background-alt py-20">
+      <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="text-4xl md:text-5xl font-black text-center mb-12">Use Cases</h2>
+          <div class="space-y-6">
+            <div class="bg-white border-4 border-black p-6 shadow-brutal">
+              <h3 class="text-2xl font-black mb-3">Enterprise Security Teams</h3>
+              <p class="text-primary-light">
+                Maintain visibility and control over all MCP server deployments across your organization. Ensure compliance with security policies and detect vulnerabilities before they become incidents.
+              </p>
+            </div>
+            <div class="bg-white border-4 border-black p-6 shadow-brutal">
+              <h3 class="text-2xl font-black mb-3">DevOps Engineers</h3>
+              <p class="text-primary-light">
+                Automate discovery and monitoring of MCP infrastructure. Integrate with existing CI/CD pipelines and monitoring systems for seamless operations.
+              </p>
+            </div>
+            <div class="bg-white border-4 border-black p-6 shadow-brutal">
+              <h3 class="text-2xl font-black mb-3">Platform Teams</h3>
+              <p class="text-primary-light">
+                Build and maintain a catalog of available MCP servers and tools. Provide self-service documentation and ensure consistent deployment practices across teams.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="container mx-auto px-4 py-20">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl md:text-5xl font-black text-center mb-12">Why Aran MCP Sentinel?</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-white border-4 border-black p-6 shadow-brutal">
+            <h3 class="text-xl font-black mb-3">🔒 Security First</h3>
+            <p class="text-primary-light">
+              Built with security in mind. OWASP MCP Top 10 compliance checking, automated vulnerability scanning, and threat detection keep your infrastructure secure.
+            </p>
+          </div>
+          <div class="bg-white border-4 border-black p-6 shadow-brutal">
+            <h3 class="text-xl font-black mb-3">⚡ Real-time Monitoring</h3>
+            <p class="text-primary-light">
+              Continuous monitoring with instant alerts. Track performance, availability, and health metrics across all your MCP servers.
+            </p>
+          </div>
+          <div class="bg-white border-4 border-black p-6 shadow-brutal">
+            <h3 class="text-xl font-black mb-3">🔍 Automated Discovery</h3>
+            <p class="text-primary-light">
+              Automatically discover and catalog MCP servers across your network. No manual configuration required.
+            </p>
+          </div>
+          <div class="bg-white border-4 border-black p-6 shadow-brutal">
+            <h3 class="text-xl font-black mb-3">📚 Comprehensive Documentation</h3>
+            <p class="text-primary-light">
+              Interactive API documentation, tool specifications, and integration guides. Everything you need to work with MCP servers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Getting Started Section -->
+    <section class="bg-background-alt py-20">
+      <div class="container mx-auto px-4">
+        <div class="max-w-3xl mx-auto text-center">
+          <h2 class="text-4xl md:text-5xl font-black mb-6">Get Started in Minutes</h2>
+          <p class="text-xl mb-8 text-primary-light">
+            Deploy Aran MCP Sentinel and start securing your MCP infrastructure today. Installation is straightforward and well-documented.
+          </p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <a 
+              href="/docs" 
+              class="px-8 py-4 bg-primary text-white font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
+            >
+              Read Documentation
+            </a>
+            <a 
+              href="https://github.com/adhit-r/aran-mcp" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-8 py-4 border-4 border-black font-bold hover:bg-background-alt transition-colors"
+            >
+              View on GitHub
+            </a>
           </div>
         </div>
       </div>
@@ -68,16 +217,22 @@ import Footer from '../components/Footer.astro';
       <div class="max-w-3xl mx-auto text-center">
         <h2 class="text-4xl font-black mb-6">Ready to Get Started?</h2>
         <p class="text-xl mb-8 text-primary-light">
-          Deploy Aran MCP Sentinel in minutes and start securing your MCP infrastructure today.
+          Join organizations securing their MCP infrastructure with Aran MCP Sentinel.
         </p>
-        <a 
-          href="https://github.com/adhit-r/aran-mcp" 
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-block px-8 py-4 bg-accent text-white font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
-        >
-          View on GitHub
-        </a>
+        <div class="flex gap-4 justify-center flex-wrap">
+          <a 
+            href="/docs" 
+            class="px-8 py-4 bg-accent text-white font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
+          >
+            Get Started
+          </a>
+          <a 
+            href="/contact" 
+            class="px-8 py-4 border-4 border-black font-bold hover:bg-background-alt transition-colors"
+          >
+            Contact Us
+          </a>
+        </div>
       </div>
     </section>
   </main>

@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 
 <BaseLayout 
   title="Features"
-  description="Comprehensive features for MCP server discovery, security testing, monitoring, and management."
+  description="Comprehensive features for MCP server discovery, security testing, monitoring, and management. Aran MCP Sentinel provides automated discovery, OWASP compliance checking, real-time monitoring, and enterprise-grade security testing for Model Context Protocol deployments."
 >
   <Header />
   <main>
@@ -14,78 +14,160 @@ import Footer from '../components/Footer.astro';
       <div class="max-w-4xl mx-auto">
         <h1 class="text-5xl md:text-6xl font-black mb-6">Features</h1>
         <p class="text-xl text-primary-light mb-12">
-          Comprehensive tooling for managing and securing Model Context Protocol deployments.
+          Comprehensive tooling for managing and securing Model Context Protocol deployments. Aran MCP Sentinel provides everything you need to discover, monitor, secure, and manage your MCP infrastructure.
         </p>
 
         <div class="space-y-12">
-          <!-- Feature 1 -->
-          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+          <!-- Feature 1: Discovery -->
+          <div id="discovery" class="bg-white border-4 border-black p-8 shadow-brutal scroll-mt-20">
             <h2 class="text-3xl font-black mb-4">Server Discovery and Catalog</h2>
             <p class="text-primary-light mb-4">
               Automatically discover MCP endpoints and services across your network. Build a comprehensive catalog of available MCP servers, tools, and resources with version tracking and compatibility management.
             </p>
-            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
-              <li>Automated network scanning</li>
-              <li>Endpoint detection and registration</li>
-              <li>Version tracking and compatibility</li>
-              <li>Service health monitoring</li>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>Automated network scanning and endpoint detection</li>
+              <li>Automatic registration of discovered MCP servers</li>
+              <li>Version tracking and compatibility management</li>
+              <li>Service health monitoring and status tracking</li>
+              <li>Resource and tool cataloging</li>
+              <li>Metadata extraction and indexing</li>
             </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Automatically discover all MCP servers in your infrastructure without manual configuration. Maintain an up-to-date catalog of available tools and resources.
+              </p>
+            </div>
           </div>
 
-          <!-- Feature 2 -->
-          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+          <!-- Feature 2: Security -->
+          <div id="security" class="bg-white border-4 border-black p-8 shadow-brutal scroll-mt-20">
             <h2 class="text-3xl font-black mb-4">Security Testing and Analysis</h2>
             <p class="text-primary-light mb-4">
               Comprehensive security testing suite with automated vulnerability assessment and OWASP MCP Top 10 compliance checking. Real-time threat detection with risk scoring and remediation recommendations.
             </p>
-            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
-              <li>OWASP MCP Top 10 compliance</li>
-              <li>Prompt injection detection</li>
-              <li>Tool poisoning prevention</li>
-              <li>Automated vulnerability scanning</li>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>OWASP MCP Top 10 compliance checking</li>
+              <li>Prompt injection detection and prevention</li>
+              <li>Tool poisoning vulnerability scanning</li>
+              <li>Automated vulnerability assessment</li>
+              <li>Risk scoring and prioritization</li>
+              <li>Remediation recommendations</li>
+              <li>Security policy enforcement</li>
+              <li>Compliance reporting</li>
             </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Ensure all MCP servers comply with security best practices. Detect and remediate vulnerabilities before they become security incidents.
+              </p>
+            </div>
           </div>
 
-          <!-- Feature 3 -->
-          <div class="bg-white border-4 border-black p-8 shadow-brutal">
-            <h2 class="text-3xl font-black mb-4">Health Monitoring</h2>
+          <!-- Feature 3: Monitoring -->
+          <div id="monitoring" class="bg-white border-4 border-black p-8 shadow-brutal scroll-mt-20">
+            <h2 class="text-3xl font-black mb-4">Health Monitoring and Alerting</h2>
             <p class="text-primary-light mb-4">
               Continuous uptime and performance monitoring with real-time alerting. Track response times, availability metrics, and historical trend analysis.
             </p>
-            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
-              <li>Real-time health checks</li>
-              <li>Performance metrics tracking</li>
-              <li>Alert management</li>
-              <li>Historical analytics</li>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>Real-time health checks and status monitoring</li>
+              <li>Performance metrics tracking (response time, throughput)</li>
+              <li>Alert management and notification system</li>
+              <li>Historical analytics and trend analysis</li>
+              <li>Uptime tracking and SLA monitoring</li>
+              <li>Custom alert rules and thresholds</li>
+              <li>Integration with existing monitoring systems</li>
             </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Monitor all MCP servers for availability and performance. Get instant alerts when servers go down or performance degrades.
+              </p>
+            </div>
           </div>
 
-          <!-- Feature 4 -->
+          <!-- Feature 4: Documentation -->
           <div class="bg-white border-4 border-black p-8 shadow-brutal">
             <h2 class="text-3xl font-black mb-4">Interactive Documentation</h2>
             <p class="text-primary-light mb-4">
-              Swagger-like API documentation for MCP endpoints with tool specifications, usage examples, and integration guides.
+              Swagger-like API documentation for MCP endpoints with tool specifications, usage examples, and integration guides. Auto-generated from discovered servers.
             </p>
-            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
-              <li>API endpoint documentation</li>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>API endpoint documentation with interactive testing</li>
               <li>Tool and resource specifications</li>
-              <li>Code snippets and examples</li>
+              <li>Code snippets and usage examples</li>
               <li>Versioned documentation history</li>
+              <li>Search and discovery of available tools</li>
+              <li>Integration guides and best practices</li>
             </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Provide self-service documentation for developers. Enable teams to discover and use available MCP tools without manual documentation.
+              </p>
+            </div>
           </div>
 
-          <!-- Feature 5 -->
+          <!-- Feature 5: Deployment -->
           <div class="bg-white border-4 border-black p-8 shadow-brutal">
-            <h2 class="text-3xl font-black mb-4">Enterprise Deployment</h2>
+            <h2 class="text-3xl font-black mb-4">Enterprise Deployment Management</h2>
             <p class="text-primary-light mb-4">
               Secure configuration templates, deployment best practices, environment validation, and rollback procedures for production deployments.
             </p>
-            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4">
-              <li>Configuration templates</li>
-              <li>Deployment automation</li>
-              <li>Environment validation</li>
-              <li>Rollback and recovery</li>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>Configuration templates and best practices</li>
+              <li>Deployment automation and orchestration</li>
+              <li>Environment validation and testing</li>
+              <li>Rollback and recovery procedures</li>
+              <li>Multi-environment support (dev, staging, prod)</li>
+              <li>Configuration drift detection</li>
             </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Standardize MCP server deployments across environments. Ensure consistent configuration and enable quick rollbacks when needed.
+              </p>
+            </div>
+          </div>
+
+          <!-- Feature 6: API -->
+          <div class="bg-white border-4 border-black p-8 shadow-brutal">
+            <h2 class="text-3xl font-black mb-4">RESTful API</h2>
+            <p class="text-primary-light mb-4">
+              Comprehensive REST API for programmatic access to all platform features. Integrate Aran MCP Sentinel with your existing tools and workflows.
+            </p>
+            <ul class="list-disc list-inside space-y-2 text-primary-light ml-4 mb-4">
+              <li>RESTful API with OpenAPI specification</li>
+              <li>Authentication and authorization</li>
+              <li>Webhook support for real-time events</li>
+              <li>Rate limiting and throttling</li>
+              <li>API versioning</li>
+            </ul>
+            <div class="bg-background-alt border-2 border-black p-4 mt-4">
+              <p class="text-sm text-primary-light">
+                <strong>Use Case:</strong> Integrate MCP server management into your CI/CD pipelines, monitoring systems, and automation tools.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="mt-12 bg-accent border-4 border-black p-8 text-center">
+          <h2 class="text-3xl font-black mb-4 text-white">Ready to Get Started?</h2>
+          <p class="text-white mb-6">
+            Start securing your MCP infrastructure today with Aran MCP Sentinel.
+          </p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <a 
+              href="/docs" 
+              class="px-8 py-4 bg-white text-primary font-bold shadow-brutal hover:shadow-brutal-sm transition-all"
+            >
+              View Documentation
+            </a>
+            <a 
+              href="https://github.com/adhit-r/aran-mcp" 
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-8 py-4 border-4 border-white text-white font-bold hover:bg-white hover:text-primary transition-colors"
+            >
+              View on GitHub
+            </a>
           </div>
         </div>
       </div>
@@ -93,4 +175,3 @@ import Footer from '../components/Footer.astro';
   </main>
   <Footer />
 </BaseLayout>
-
