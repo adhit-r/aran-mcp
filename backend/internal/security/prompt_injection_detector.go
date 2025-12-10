@@ -95,7 +95,7 @@ func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionR
 			result.MatchedPatterns = append(result.MatchedPatterns, pattern.String())
 			result.Score += 20
 			// Map to SAFE-T1102 (Prompt Injection)
-			if !contains(result.SAFEMCPTechniques, "SAFE-T1102") {
+			if !containsString(result.SAFEMCPTechniques, "SAFE-T1102") {
 				result.SAFEMCPTechniques = append(result.SAFEMCPTechniques, "SAFE-T1102")
 			}
 		}
@@ -108,7 +108,7 @@ func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionR
 			result.MatchedPatterns = append(result.MatchedPatterns, keyword)
 			result.Score += 10
 			// Map to SAFE-T1102 (Prompt Injection)
-			if !contains(result.SAFEMCPTechniques, "SAFE-T1102") {
+			if !containsString(result.SAFEMCPTechniques, "SAFE-T1102") {
 				result.SAFEMCPTechniques = append(result.SAFEMCPTechniques, "SAFE-T1102")
 			}
 		}
@@ -182,8 +182,8 @@ func (d *PromptInjectionDetector) ValidateToolAccess(toolName string, params map
 	return true
 }
 
-// Helper function to check if slice contains string
-func contains(slice []string, item string) bool {
+// Helper function to check if string slice contains a string
+func containsString(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
 			return true
