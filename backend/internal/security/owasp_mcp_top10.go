@@ -10,12 +10,13 @@ import (
 
 // OWASPMCPTop10 represents the OWASP MCP Top 10 security categories
 type OWASPMCPTop10 struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Severity    string    `json:"severity"`
-	Category    string    `json:"category"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID              string    `json:"id"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	Severity        string    `json:"severity"`
+	Category        string    `json:"category"`
+	SAFEMCPTechniques []string `json:"safe_mcp_techniques"` // Mapped SAFE-MCP technique IDs
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 // OWASPMCPTop10Test represents a security test for OWASP MCP Top 10
@@ -68,7 +69,7 @@ func NewOWASPMCPTop10Manager(logger *zap.Logger) *OWASPMCPTop10Manager {
 	}
 }
 
-// GetOWASPMCPTop10Categories returns the OWASP MCP Top 10 categories
+// GetOWASPMCPTop10Categories returns the OWASP MCP Top 10 categories with SAFE-MCP mappings
 func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 	return []OWASPMCPTop10{
 		{
@@ -77,6 +78,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers that fail to properly restrict access to resources and functionality",
 			Severity:    "HIGH",
 			Category:    "Access Control",
+			SAFEMCPTechniques: []string{"SAFE-T1104", "SAFE-T1301", "SAFE-T1302", "SAFE-T1304", "SAFE-T1308", "SAFE-T1309"},
 		},
 		{
 			ID:          "A02",
@@ -84,6 +86,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers that fail to protect sensitive data in transit and at rest",
 			Severity:    "HIGH",
 			Category:    "Cryptography",
+			SAFEMCPTechniques: []string{"SAFE-T1506", "SAFE-T1507"},
 		},
 		{
 			ID:          "A03",
@@ -91,6 +94,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers vulnerable to injection attacks through user input",
 			Severity:    "HIGH",
 			Category:    "Injection",
+			SAFEMCPTechniques: []string{"SAFE-T1101", "SAFE-T1102", "SAFE-T1105", "SAFE-T1110"},
 		},
 		{
 			ID:          "A04",
@@ -98,6 +102,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers with fundamental design flaws that compromise security",
 			Severity:    "MEDIUM",
 			Category:    "Design",
+			SAFEMCPTechniques: []string{"SAFE-T1001", "SAFE-T1003", "SAFE-T1004"},
 		},
 		{
 			ID:          "A05",
@@ -105,6 +110,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers with insecure default configurations or missing security controls",
 			Severity:    "MEDIUM",
 			Category:    "Configuration",
+			SAFEMCPTechniques: []string{"SAFE-T1005", "SAFE-T1203"},
 		},
 		{
 			ID:          "A06",
@@ -112,6 +118,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers using components with known vulnerabilities",
 			Severity:    "MEDIUM",
 			Category:    "Dependencies",
+			SAFEMCPTechniques: []string{"SAFE-T1002", "SAFE-T1109"},
 		},
 		{
 			ID:          "A07",
@@ -119,6 +126,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers with weak authentication mechanisms or session management",
 			Severity:    "HIGH",
 			Category:    "Authentication",
+			SAFEMCPTechniques: []string{"SAFE-T1007", "SAFE-T1009", "SAFE-T1202", "SAFE-T1306", "SAFE-T1307", "SAFE-T1408"},
 		},
 		{
 			ID:          "A08",
@@ -126,6 +134,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers that fail to verify software and data integrity",
 			Severity:    "MEDIUM",
 			Category:    "Integrity",
+			SAFEMCPTechniques: []string{"SAFE-T1201", "SAFE-T1207", "SAFE-T1402", "SAFE-T1406", "SAFE-T2106", "SAFE-T2107"},
 		},
 		{
 			ID:          "A09",
@@ -133,6 +142,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers with insufficient logging and monitoring capabilities",
 			Severity:    "LOW",
 			Category:    "Logging",
+			SAFEMCPTechniques: []string{"SAFE-T1401", "SAFE-T1403", "SAFE-T1404", "SAFE-T1407"},
 		},
 		{
 			ID:          "A10",
@@ -140,6 +150,7 @@ func (m *OWASPMCPTop10Manager) GetOWASPMCPTop10Categories() []OWASPMCPTop10 {
 			Description: "MCP servers vulnerable to SSRF attacks through untrusted input",
 			Severity:    "HIGH",
 			Category:    "SSRF",
+			SAFEMCPTechniques: []string{"SAFE-T1103", "SAFE-T1111"},
 		},
 	}
 }

@@ -258,15 +258,28 @@ NEXTAUTH_URL=http://localhost:3000
 
 ### Security Best Practices
 
-Aran MCP Sentinel implements comprehensive security measures:
+Aran MCP Sentinel implements comprehensive security measures integrated with the [SAFE-MCP threat modeling framework](https://github.com/SAFE-MCP/safe-mcp):
 
-1. **Prompt Injection Detection**: Real-time detection of malicious prompt manipulation attempts
-2. **Tool Poisoning Prevention**: Validation of tool metadata and capabilities
-3. **Privilege Abuse Monitoring**: Tracking and alerting on excessive permissions
-4. **Authentication**: Multiple authentication providers (JWT, Authelia, Clerk, Neon Auth)
-5. **Input Validation**: Comprehensive input sanitization and validation
-6. **Secure Communication**: TLS/SSL for all communications
-7. **Credential Management**: Secure storage and rotation of API keys
+1. **Threat Modeling**: Structured threat intelligence using MITRE ATT&CK methodology with 81 documented techniques
+2. **Prompt Injection Detection**: Real-time detection of malicious prompt manipulation attempts (SAFE-T1102)
+3. **Tool Poisoning Prevention**: Validation of tool metadata and capabilities (SAFE-T1001)
+4. **Privilege Abuse Monitoring**: Tracking and alerting on excessive permissions (SAFE-T1104, SAFE-T1309)
+5. **Authentication**: Multiple authentication providers (JWT, Authelia, Clerk, Neon Auth)
+6. **Input Validation**: Comprehensive input sanitization and validation (SAFE-M-4, SAFE-M-5)
+7. **Secure Communication**: TLS/SSL for all communications
+8. **Credential Management**: Secure storage and rotation of API keys
+9. **Behavioral Monitoring**: Anomaly detection using baseline analysis (SAFE-M-11)
+10. **Mitigation Framework**: 47 actionable security controls with effectiveness ratings
+
+### SAFE-MCP Integration
+
+Aran integrates the SAFE-MCP framework providing:
+- **14 Tactical Categories**: Complete MITRE ATT&CK-aligned threat coverage
+- **Real-time Detection**: Pattern matching for known attack techniques
+- **Risk Assessment**: Automated threat scoring and mitigation recommendations
+- **Compliance Mapping**: Links to MITRE ATT&CK for regulatory compliance
+
+See [Threat Modeling Documentation](docs/security/THREAT_MODELING.md) for complete details.
 
 ### OWASP MCP Top 10
 
