@@ -2,7 +2,7 @@
 
 ## 🛡️ Security Overview
 
-Aran MCP Sentinel implements a comprehensive security architecture designed to protect against the evolving threat landscape of 2025, with particular focus on AI/LLM-specific vulnerabilities and MCP protocol security.
+Aran MCP Sentinel implements a comprehensive security architecture designed to protect against the evolving threat landscape of 2025, with particular focus on AI/LLM-specific vulnerabilities and MCP protocol security. The platform integrates the [SAFE-MCP (Security Analysis Framework for Evaluation of Model Context Protocol)](https://github.com/SAFE-MCP/safe-mcp) framework for structured threat modeling using MITRE ATT&CK methodology.
 
 ## 🎯 Security Principles
 
@@ -56,6 +56,18 @@ roles:
 ```
 
 ## 🛡️ Threat Detection & Prevention
+
+### Threat Modeling Framework
+
+Aran MCP Sentinel integrates SAFE-MCP for comprehensive threat modeling:
+
+- **14 Tactical Categories**: Coverage of all MITRE ATT&CK tactics adapted for MCP
+- **81 Documented Techniques**: Complete threat technique catalog (SAFE-T1001-T2107)
+- **47 Mitigations**: Actionable security controls with effectiveness ratings (SAFE-M-1 to M-48)
+- **Real-time Detection**: Pattern matching and behavioral analysis for known attack techniques
+- **Risk Assessment**: Automated threat scoring and mitigation recommendations
+
+See [Threat Modeling Documentation](THREAT_MODELING.md) for complete details.
 
 ### LLM-Aware Threat Detection
 
