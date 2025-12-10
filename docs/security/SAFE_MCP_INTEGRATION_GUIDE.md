@@ -288,7 +288,7 @@ SAFE-MCP techniques map directly to MITRE ATT&CK, enabling:
 ## Support
 
 For questions or issues with SAFE-MCP integration:
-- GitHub Issues: https://github.com/adhit-r/aran-mcp/issues
+- GitHub Issues: https://github.com/radhi1991/aran-mcp-sentinel/issues
 - SAFE-MCP Community: https://github.com/SAFE-MCP/safe-mcp/discussions
 - Security Contact: security@aran-mcp-sentinel.com
 

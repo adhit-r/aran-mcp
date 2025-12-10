@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,10 +12,11 @@ import (
 
 // ThreatModelManager manages threat modeling operations
 type ThreatModelManager struct {
-	logger     *zap.Logger
-	tactics    []ThreatTactic
-	techniques []ThreatTechnique
-	mitigations []ThreatMitigation
+	logger            *zap.Logger
+	tactics           []ThreatTactic
+	techniques        []ThreatTechnique
+	mitigations       []ThreatMitigation
+	injectionPatterns []string // Common injection patterns cached for performance
 }
 
 // NewThreatModelManager creates a new threat model manager
@@ -24,6 +26,12 @@ func NewThreatModelManager(logger *zap.Logger) *ThreatModelManager {
 		tactics:     GetDefaultTactics(),
 		techniques:  GetDefaultTechniques(),
 		mitigations: GetDefaultMitigations(),
+		injectionPatterns: []string{
+			"ignore previous instructions",
+			"disregard all",
+			"system:",
+			"<!-- ",
+		},
 	}
 }
 
@@ -123,7 +131,7 @@ func (m *ThreatModelManager) DetectThreats(ctx context.Context, serverID uuid.UU
 	}
 
 	// Check for prompt injection indicators
-	if promptInjectionDetected(evidence) {
+	if m.promptInjectionDetected(evidence) {
 		detection := ThreatDetection{
 			ID:          uuid.New(),
 			ServerID:    serverID,
@@ -277,17 +285,11 @@ func toolPoisoningDetected(evidence map[string]interface{}) bool {
 	return false
 }
 
-func promptInjectionDetected(evidence map[string]interface{}) bool {
+func (m *ThreatModelManager) promptInjectionDetected(evidence map[string]interface{}) bool {
 	// Check for prompt injection patterns
 	if prompt, ok := evidence["prompt"].(string); ok {
-		// Look for common injection patterns
-		injectionPatterns := []string{
-			"ignore previous instructions",
-			"disregard all",
-			"system:",
-			"<!-- ",
-		}
-		for _, pattern := range injectionPatterns {
+		// Use cached injection patterns
+		for _, pattern := range m.injectionPatterns {
 			if containsPattern(prompt, pattern) {
 				return true
 			}
@@ -295,7 +297,6 @@ func promptInjectionDetected(evidence map[string]interface{}) bool {
 	}
 	return false
 }
-
 func credentialAccessDetected(evidence map[string]interface{}) bool {
 	// Check for credential access patterns
 	if accessed, ok := evidence["accessed_files"].([]string); ok {
@@ -336,22 +337,8 @@ func containsZeroWidthChars(s string) bool {
 }
 
 func containsPattern(s, pattern string) bool {
-	// Simple case-insensitive contains check
-	return len(s) > 0 && len(pattern) > 0 && 
-		(s == pattern || containsSubstring(s, pattern))
-}
-
-func containsSubstring(s, substr string) bool {
-	// Basic substring search
-	if len(substr) > len(s) {
-		return false
-	}
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	// Case-insensitive contains check using standard library
+	return strings.Contains(strings.ToLower(s), strings.ToLower(pattern))
 }
 
 func (m *ThreatModelManager) countAppliedMitigations(detections []ThreatDetection) int {
