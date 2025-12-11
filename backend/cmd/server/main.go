@@ -227,6 +227,11 @@ func main() {
 			securityHandler := security.NewHandler(logger)
 			securityHandler.RegisterRoutes(protected)
 
+			// Threat modeling endpoints (SAFE-MCP integration)
+			threatModelManager := security.NewThreatModelManager(logger)
+			threatModelHandler := security.NewThreatModelHandler(logger, threatModelManager)
+			threatModelHandler.RegisterRoutes(protected)
+
 			// Alerts endpoints
 			alertsHandler.RegisterRoutes(protected)
 
