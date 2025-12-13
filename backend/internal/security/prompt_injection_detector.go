@@ -6,18 +6,24 @@ import (
 )
 
 // PromptInjectionDetector detects potential prompt injection attacks
+// Implements detection for SAFE-MCP techniques:
+// - SAFE-T1102: Prompt Injection (Multiple Vectors)
+// - SAFE-T1110: Multimodal Prompt Injection via Images/Audio
+// - SAFE-T1309: Privileged Tool Invocation via Prompt Manipulation
 type PromptInjectionDetector struct {
 	suspiciousPatterns []*regexp.Regexp
 	highRiskKeywords   []string
 }
 
 // PromptInjectionResult represents the result of prompt injection analysis
+// Maps to SAFE-MCP detection and mitigation framework
 type PromptInjectionResult struct {
 	IsDetected      bool     `json:"is_detected"`
 	RiskLevel       string   `json:"risk_level"` // "low", "medium", "high", "critical"
 	MatchedPatterns []string `json:"matched_patterns"`
 	Score           int      `json:"score"`
 	Recommendations []string `json:"recommendations"`
+	SAFEMCPTechniques []string `json:"safe_mcp_techniques"` // Detected SAFE-MCP technique IDs
 }
 
 // NewPromptInjectionDetector creates a new prompt injection detector
@@ -69,6 +75,7 @@ func NewPromptInjectionDetector() *PromptInjectionDetector {
 }
 
 // AnalyzePrompt analyzes a prompt for potential injection attacks
+// Returns SAFE-MCP mapped results for detected techniques
 func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionResult {
 	result := &PromptInjectionResult{
 		IsDetected:      false,
@@ -76,6 +83,7 @@ func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionR
 		MatchedPatterns: []string{},
 		Score:           0,
 		Recommendations: []string{},
+		SAFEMCPTechniques: []string{},
 	}
 
 	promptLower := strings.ToLower(prompt)
@@ -86,6 +94,10 @@ func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionR
 			result.IsDetected = true
 			result.MatchedPatterns = append(result.MatchedPatterns, pattern.String())
 			result.Score += 20
+			// Map to SAFE-T1102 (Prompt Injection)
+			if !containsString(result.SAFEMCPTechniques, "SAFE-T1102") {
+				result.SAFEMCPTechniques = append(result.SAFEMCPTechniques, "SAFE-T1102")
+			}
 		}
 	}
 
@@ -95,6 +107,10 @@ func (d *PromptInjectionDetector) AnalyzePrompt(prompt string) *PromptInjectionR
 			result.IsDetected = true
 			result.MatchedPatterns = append(result.MatchedPatterns, keyword)
 			result.Score += 10
+			// Map to SAFE-T1102 (Prompt Injection)
+			if !containsString(result.SAFEMCPTechniques, "SAFE-T1102") {
+				result.SAFEMCPTechniques = append(result.SAFEMCPTechniques, "SAFE-T1102")
+			}
 		}
 	}
 
@@ -164,6 +180,16 @@ func (d *PromptInjectionDetector) ValidateToolAccess(toolName string, params map
 	}
 
 	return true
+}
+
+// Helper function to check if string slice contains a string
+func containsString(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 
