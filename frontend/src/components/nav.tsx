@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Home, Server, Bell, Settings, Palette, Shield } from 'lucide-react';
+import { Home, Server, Bell, Settings, Palette, Shield, Webhook } from 'lucide-react';
 import { Logo, LogoUltraBrutal } from '@/components/logo';
 import { UserButton } from '@clerk/nextjs';
 
@@ -7,6 +7,7 @@ const navItems = [
   { label: 'Dashboard', icon: <Home />, href: '/dashboard' },
   { label: 'Servers', icon: <Server />, href: '/servers' },
   { label: 'Security', icon: <Shield />, href: '/security' },
+  { label: 'Webhooks', icon: <Webhook />, href: '/webhooks' },
   { label: 'Alerts', icon: <Bell />, href: '/alerts' },
   { label: 'Design System', icon: <Palette />, href: '/design-system' },
   { label: 'Settings', icon: <Settings />, href: '/settings' },
