@@ -545,3 +545,171 @@ export const updateServerHealth = async (serverId: string, healthData: any): Pro
     throw error;
   }
 };
+
+// Webhook API functions
+export interface Webhook {
+  id: string;
+  organization_id: string;
+  name: string;
+  url: string;
+  description: string;
+  events: string[];
+  is_active: boolean;
+  headers: Record<string, any>;
+  retry_config: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  last_triggered_at?: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  webhook_id: string;
+  event_type: string;
+  event_id: string;
+  payload: Record<string, any>;
+  status: 'pending' | 'success' | 'failed' | 'retrying';
+  http_status_code?: number;
+  response_body?: string;
+  error_message?: string;
+  attempts: number;
+  max_attempts: number;
+  next_retry_at?: string;
+  delivered_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateWebhookRequest {
+  name: string;
+  url: string;
+  description?: string;
+  events: string[];
+  is_active?: boolean;
+  headers?: Record<string, any>;
+  retry_config?: Record<string, any>;
+}
+
+export interface UpdateWebhookRequest {
+  name?: string;
+  url?: string;
+  description?: string;
+  events?: string[];
+  is_active?: boolean;
+  headers?: Record<string, any>;
+  retry_config?: Record<string, any>;
+}
+
+export const fetchWebhooks = async (): Promise<Webhook[]> => {
+  try {
+    console.log('Fetching webhooks from API...');
+    const response = await api.get('/webhooks');
+    console.log('Webhooks response:', response.data);
+    return Array.isArray(response.data) ? response.data : response.data.data || [];
+  } catch (error: any) {
+    console.error('Error fetching webhooks:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch webhooks from backend'
+    );
+  }
+};
+
+export const fetchWebhook = async (id: string): Promise<Webhook> => {
+  try {
+    console.log('Fetching webhook:', id);
+    const response = await api.get(`/webhooks/${id}`);
+    console.log('Webhook response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error fetching webhook:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch webhook'
+    );
+  }
+};
+
+export const createWebhook = async (webhookData: CreateWebhookRequest): Promise<Webhook> => {
+  try {
+    console.log('Creating webhook:', webhookData);
+    const response = await api.post('/webhooks', webhookData);
+    console.log('Create webhook response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error creating webhook:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to create webhook'
+    );
+  }
+};
+
+export const updateWebhook = async (id: string, webhookData: UpdateWebhookRequest): Promise<Webhook> => {
+  try {
+    console.log('Updating webhook:', id, webhookData);
+    const response = await api.put(`/webhooks/${id}`, webhookData);
+    console.log('Update webhook response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error updating webhook:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to update webhook'
+    );
+  }
+};
+
+export const deleteWebhook = async (id: string): Promise<void> => {
+  try {
+    console.log('Deleting webhook:', id);
+    await api.delete(`/webhooks/${id}`);
+    console.log('Webhook deleted successfully');
+  } catch (error: any) {
+    console.error('Error deleting webhook:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to delete webhook'
+    );
+  }
+};
+
+export const testWebhook = async (id: string, eventType: string, testData?: Record<string, any>): Promise<any> => {
+  try {
+    console.log('Testing webhook:', id, eventType);
+    const response = await api.post(`/webhooks/${id}/test`, {
+      event_type: eventType,
+      test_data: testData
+    });
+    console.log('Test webhook response:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('Error testing webhook:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to test webhook'
+    );
+  }
+};
+
+export const fetchWebhookDeliveries = async (webhookId: string, limit: number = 50, offset: number = 0): Promise<WebhookDelivery[]> => {
+  try {
+    console.log('Fetching webhook deliveries:', webhookId);
+    const response = await api.get(`/webhooks/${webhookId}/deliveries?limit=${limit}&offset=${offset}`);
+    console.log('Webhook deliveries response:', response.data);
+    return Array.isArray(response.data) ? response.data : response.data.data || [];
+  } catch (error: any) {
+    console.error('Error fetching webhook deliveries:', error);
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'Failed to fetch webhook deliveries'
+    );
+  }
+};
