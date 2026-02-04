@@ -22,6 +22,7 @@ import (
 	"github.com/radhi1991/aran-mcp-sentinel/internal/monitoring"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/repository"
 	"github.com/radhi1991/aran-mcp-sentinel/internal/security"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/webhook"
 	"go.uber.org/zap"
 )
 
@@ -239,6 +240,11 @@ func main() {
 			// Endpoint scanning doesn't require repository, so we pass nil
 			discoveryHandler := discovery.NewDiscoveryHandler(logger, nil)
 			discoveryHandler.RegisterRoutes(protected)
+
+			// Webhook endpoints
+			webhookService := webhook.NewService(dbConn.DB.DB, logger)
+			webhookHandler := webhook.NewHandler(webhookService, logger)
+			webhookHandler.RegisterRoutes(protected)
 		}
 	}
 
