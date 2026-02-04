@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -463,7 +465,9 @@ func (s *Service) createDelivery(ctx context.Context, webhook *models.Webhook, e
 		return fmt.Errorf("failed to create delivery: %w", err)
 	}
 
-	// Trigger immediate delivery in background
+	// Trigger immediate delivery in background goroutine
+	// Note: This is a fire-and-forget delivery. For production use with high volumes,
+	// consider using a message queue or worker pool for better control and monitoring.
 	go func() {
 		bgCtx := context.Background()
 		if err := s.DeliverWebhook(bgCtx, delivery.ID); err != nil {
@@ -553,10 +557,11 @@ func (s *Service) calculateNextRetry(attempts int, retryConfig map[string]interf
 }
 
 func generateSecret() string {
-	// Generate a random 32-byte secret
+	// Generate a cryptographically secure random 32-byte secret
 	bytes := make([]byte, 32)
-	for i := range bytes {
-		bytes[i] = byte(time.Now().UnixNano() % 256)
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to using UUID if crypto/rand fails
+		return strings.ReplaceAll(uuid.New().String(), "-", "")
 	}
 	return hex.EncodeToString(bytes)
 }
