@@ -242,7 +242,7 @@ func main() {
 			discoveryHandler.RegisterRoutes(protected)
 
 			// Webhook endpoints
-			webhookService := webhook.NewService(dbConn.DB.DB, logger)
+			webhookService := webhook.NewService(dbConn.DB, logger)
 			webhookHandler := webhook.NewHandler(webhookService, logger)
 			webhookHandler.RegisterRoutes(protected)
 		}
