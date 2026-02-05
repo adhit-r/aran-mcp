@@ -241,10 +241,16 @@ func main() {
 			discoveryHandler := discovery.NewDiscoveryHandler(logger, nil)
 			discoveryHandler.RegisterRoutes(protected)
 
+<<<<<<< HEAD
 			// Webhook endpoints
 			webhookService := webhook.NewService(dbConn.DB, logger)
 			webhookHandler := webhook.NewHandler(webhookService, logger)
 			webhookHandler.RegisterRoutes(protected)
+=======
+					// Search and filtering endpoints
+					searchHandler := database.NewSearchHandler(repo, logger)
+					database.RegisterSearchRoutes(protected, searchHandler)
+>>>>>>> 8de1caa (feat: Add search and filtering functionality)
 		}
 	}
 
