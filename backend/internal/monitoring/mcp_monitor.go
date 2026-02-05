@@ -228,7 +228,7 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *common.Ser
 	}
 
 	// Store result in database
-	m.storeHealthCheckResult(result)
+	_ = m.storeHealthCheckResult(result)
 
 	// Check for performance alerts
 	m.checkPerformanceAlerts(monitor)

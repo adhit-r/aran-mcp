@@ -208,7 +208,7 @@ func (hc *HealthChecker) logStatusChange(ctx context.Context, serverID, oldStatu
 		message = fmt.Sprintf("Server went %s: %s", newStatus, errorMessage)
 	} else if newStatus == "online" && oldStatus != "online" {
 		severity = "info"
-		message = fmt.Sprintf("Server came back online")
+		message = "Server came back online"
 	}
 
 	// Create alert

@@ -869,8 +869,8 @@ func (tm *ToolManager) ListTools(serverID *uuid.UUID, category, riskLevel string
 		}
 
 		// Parse JSON fields
-		json.Unmarshal(inputSchemaJSON, &tool.InputSchema)
-		json.Unmarshal(tagsJSON, &tool.Tags)
+		_ = json.Unmarshal(inputSchemaJSON, &tool.InputSchema)
+		_ = json.Unmarshal(tagsJSON, &tool.Tags)
 
 		if lastUsed.Valid {
 			tool.LastUsed = &lastUsed.Time
