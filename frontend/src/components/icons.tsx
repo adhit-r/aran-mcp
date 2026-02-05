@@ -290,6 +290,13 @@ export const Icons = {
   bars: createIcon('bar-chart-2'),
   chart: createIcon('bar-chart-2'),
   
+  // Webhook icons
+  webhook: createIcon('webhook'),
+  power: createIcon('power'),
+  eye: createIcon('eye'),
+  close: createIcon('x'),
+  inbox: createIcon('inbox'),
+  
   // Add any other custom icons here
 };
 
