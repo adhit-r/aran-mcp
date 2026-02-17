@@ -56,18 +56,18 @@ func Load() (*Config, error) {
 	bindEnvs(v, Config{})
 	
 	// Explicitly bind environment variables
-	v.BindEnv("DB_HOST")
-	v.BindEnv("DB_PORT")
-	v.BindEnv("DB_USER")
-	v.BindEnv("DB_PASSWORD")
-	v.BindEnv("DB_NAME")
-	v.BindEnv("DB_SSL_MODE")
-	v.BindEnv("JWT_SECRET")
-	v.BindEnv("JWT_ACCESS_EXPIRY")
-	v.BindEnv("JWT_REFRESH_EXPIRY")
-	v.BindEnv("SERVER_PORT")
-	v.BindEnv("ENV")
-	v.BindEnv("LOG_LEVEL")
+	_ = v.BindEnv("DB_HOST")
+	_ = v.BindEnv("DB_PORT")
+	_ = v.BindEnv("DB_USER")
+	_ = v.BindEnv("DB_PASSWORD")
+	_ = v.BindEnv("DB_NAME")
+	_ = v.BindEnv("DB_SSL_MODE")
+	_ = v.BindEnv("JWT_SECRET")
+	_ = v.BindEnv("JWT_ACCESS_EXPIRY")
+	_ = v.BindEnv("JWT_REFRESH_EXPIRY")
+	_ = v.BindEnv("SERVER_PORT")
+	_ = v.BindEnv("ENV")
+	_ = v.BindEnv("LOG_LEVEL")
 
 	return &cfg, nil
 }

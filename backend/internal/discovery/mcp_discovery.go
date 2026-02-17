@@ -293,7 +293,7 @@ func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*common.DiscoveredServ
 
 	var servers []*common.DiscoveredServer
 
-	for _, _ = range envVars {
+	for range envVars {
 		// This would be implemented to read from environment
 		// For now, return empty slice
 	}

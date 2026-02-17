@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"fmt"
 	"sort"
 	"time"
 
@@ -422,7 +421,6 @@ func (sr *ServerRegistry) applyPagination(entries []*RegistryEntry, options Regi
 
 // matchesQuery checks if an entry matches a search query
 func (sr *ServerRegistry) matchesQuery(entry *RegistryEntry, query string) bool {
-	query = fmt.Sprintf("%s", query)
 	return contains(entry.Name, query) ||
 		contains(entry.Description, query) ||
 		contains(entry.URL, query) ||

@@ -125,7 +125,7 @@ func (pm *ProductionMiddleware) AuditLogger() gin.HandlerFunc {
 				// Only log non-sensitive endpoints
 				if !strings.Contains(c.Request.URL.Path, "auth") &&
 				   !strings.Contains(c.Request.URL.Path, "password") {
-					c.ShouldBindJSON(&requestBody)
+					_ = c.ShouldBindJSON(&requestBody)
 				}
 			}
 		}
