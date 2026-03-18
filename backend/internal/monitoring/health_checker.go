@@ -20,15 +20,15 @@ type HealthChecker struct {
 
 // HealthStatus represents the health status of an MCP server
 type HealthStatus struct {
-	ServerID      string    `json:"server_id"`
-	Status        string    `json:"status"`        // online, offline, error, unknown
-	ResponseTime  int64     `json:"response_time"` // milliseconds
-	LastChecked   time.Time `json:"last_checked"`
-	ErrorMessage  string    `json:"error_message,omitempty"`
-	Uptime        string    `json:"uptime,omitempty"`
-	MemoryUsage   string    `json:"memory_usage,omitempty"`
-	Version       string    `json:"version,omitempty"`
-	Capabilities  []string  `json:"capabilities,omitempty"`
+	ServerID     string    `json:"server_id"`
+	Status       string    `json:"status"`        // online, offline, error, unknown
+	ResponseTime int64     `json:"response_time"` // milliseconds
+	LastChecked  time.Time `json:"last_checked"`
+	ErrorMessage string    `json:"error_message,omitempty"`
+	Uptime       string    `json:"uptime,omitempty"`
+	MemoryUsage  string    `json:"memory_usage,omitempty"`
+	Version      string    `json:"version,omitempty"`
+	Capabilities []string  `json:"capabilities,omitempty"`
 }
 
 // NewHealthChecker creates a new health checker instance
@@ -70,7 +70,7 @@ func (hc *HealthChecker) CheckServerHealth(ctx context.Context, serverID string)
 	if err != nil {
 		status.Status = "error"
 		status.ErrorMessage = err.Error()
-		hc.logger.Error("Health check failed", 
+		hc.logger.Error("Health check failed",
 			zap.String("server_id", serverID),
 			zap.String("url", server.URL),
 			zap.Error(err))
@@ -92,10 +92,10 @@ func (hc *HealthChecker) CheckServerHealth(ctx context.Context, serverID string)
 		if status.ErrorMessage != "" {
 			errorMsg = &status.ErrorMessage
 		}
-		
+
 		updateErr := hc.repo.UpdateMCPServerStatus(ctx, serverUUID, status.Status, &responseTimeMs, errorMsg)
 		if updateErr != nil {
-			hc.logger.Error("Failed to update server status", 
+			hc.logger.Error("Failed to update server status",
 				zap.String("server_id", serverID),
 				zap.Error(updateErr))
 		}
@@ -112,7 +112,7 @@ func (hc *HealthChecker) CheckServerHealth(ctx context.Context, serverID string)
 // checkHTTPServer performs health check for HTTP/HTTPS servers
 func (hc *HealthChecker) checkHTTPServer(ctx context.Context, url string, status *HealthStatus) error {
 	start := time.Now()
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url+"/health", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -149,7 +149,7 @@ func (hc *HealthChecker) checkFilesystemServer(ctx context.Context, url string, 
 	// For filesystem servers, we'll check if the process is running
 	// This is a simplified check - in production, you might want to use process monitoring
 	start := time.Now()
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url+"/info", nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -177,7 +177,7 @@ func (hc *HealthChecker) checkFilesystemServer(ctx context.Context, url string, 
 // checkGenericServer performs a generic health check
 func (hc *HealthChecker) checkGenericServer(ctx context.Context, url string, status *HealthStatus) error {
 	start := time.Now()
-	
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
@@ -208,7 +208,7 @@ func (hc *HealthChecker) logStatusChange(ctx context.Context, serverID, oldStatu
 		message = fmt.Sprintf("Server went %s: %s", newStatus, errorMessage)
 	} else if newStatus == "online" && oldStatus != "online" {
 		severity = "info"
-		message = fmt.Sprintf("Server came back online")
+		message = "Server came back online"
 	}
 
 	// Create alert

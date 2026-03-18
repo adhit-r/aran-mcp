@@ -869,8 +869,12 @@ func (tm *ToolManager) ListTools(serverID *uuid.UUID, category, riskLevel string
 		}
 
 		// Parse JSON fields
-		json.Unmarshal(inputSchemaJSON, &tool.InputSchema)
-		json.Unmarshal(tagsJSON, &tool.Tags)
+		if err := json.Unmarshal(inputSchemaJSON, &tool.InputSchema); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal input schema: %w", err)
+		}
+		if err := json.Unmarshal(tagsJSON, &tool.Tags); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal tags: %w", err)
+		}
 
 		if lastUsed.Valid {
 			tool.LastUsed = &lastUsed.Time

@@ -12,16 +12,16 @@ import (
 // Load loads the configuration from file and environment variables
 func Load() (*Config, error) {
 	v := viper.New()
-	v.SetConfigName("config") // name of config file (without extension)
-	v.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
-	v.AddConfigPath("./configs")    // path to look for the config file in
-	v.AddConfigPath("../configs")   // look for config in the parent directory
+	v.SetConfigName("config")        // name of config file (without extension)
+	v.SetConfigType("yaml")          // REQUIRED if the config file does not have the extension in the name
+	v.AddConfigPath("./configs")     // path to look for the config file in
+	v.AddConfigPath("../configs")    // look for config in the parent directory
 	v.AddConfigPath("../../configs") // look for config in the grandparent directory
 
 	// Enable VIPER to read Environment Variables
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	
+
 	// Set environment variable prefix
 	v.SetEnvPrefix("")
 
@@ -54,20 +54,28 @@ func Load() (*Config, error) {
 
 	// Override with environment variables if set
 	bindEnvs(v, Config{})
-	
+
 	// Explicitly bind environment variables
-	v.BindEnv("DB_HOST")
-	v.BindEnv("DB_PORT")
-	v.BindEnv("DB_USER")
-	v.BindEnv("DB_PASSWORD")
-	v.BindEnv("DB_NAME")
-	v.BindEnv("DB_SSL_MODE")
-	v.BindEnv("JWT_SECRET")
-	v.BindEnv("JWT_ACCESS_EXPIRY")
-	v.BindEnv("JWT_REFRESH_EXPIRY")
-	v.BindEnv("SERVER_PORT")
-	v.BindEnv("ENV")
-	v.BindEnv("LOG_LEVEL")
+	envVars := []string{
+		"DB_HOST",
+		"DB_PORT",
+		"DB_USER",
+		"DB_PASSWORD",
+		"DB_NAME",
+		"DB_SSL_MODE",
+		"JWT_SECRET",
+		"JWT_ACCESS_EXPIRY",
+		"JWT_REFRESH_EXPIRY",
+		"SERVER_PORT",
+		"ENV",
+		"LOG_LEVEL",
+	}
+
+	for _, envVar := range envVars {
+		if err := v.BindEnv(envVar); err != nil {
+			return nil, fmt.Errorf("failed to bind env %s: %w", envVar, err)
+		}
+	}
 
 	return &cfg, nil
 }

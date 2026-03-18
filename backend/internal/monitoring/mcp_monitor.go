@@ -68,7 +68,7 @@ func (m *MCPMonitor) StartMonitoring(serverID uuid.UUID, url, name string, inter
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	monitor := &common.ServerMonitor{
 		ServerID:    serverID,
 		URL:         url,
@@ -104,7 +104,7 @@ func (m *MCPMonitor) StopMonitoring(url string) {
 			monitor.Cancel()
 		}
 		delete(m.monitors, url)
-		
+
 		m.logger.Info("Stopped monitoring MCP server",
 			zap.String("url", url),
 		)
@@ -115,7 +115,7 @@ func (m *MCPMonitor) StopMonitoring(url string) {
 func (m *MCPMonitor) GetServerStatus(url string) (*common.ServerMonitor, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	monitor, exists := m.monitors[url]
 	return monitor, exists
 }
@@ -169,17 +169,17 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *common.Ser
 	// Perform MCP ping
 	err := m.protocol.Ping(checkCtx, monitor.URL)
 	responseTime := time.Since(start)
-	
+
 	if err != nil {
 		// Server is down or unresponsive
 		monitor.Status = "offline"
 		monitor.ErrorCount++
 		monitor.Metrics.FailedRequests++
 		monitor.Metrics.LastError = err.Error()
-		
+
 		result.Status = "offline"
 		result.Error = err.Error()
-		
+
 		m.logger.Warn("MCP server health check failed",
 			zap.String("url", monitor.URL),
 			zap.Error(err),
@@ -194,9 +194,9 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *common.Ser
 		monitor.Status = "online"
 		monitor.ErrorCount = 0
 		monitor.Metrics.SuccessfulReqs++
-		
+
 		result.Status = "online"
-		
+
 		// If server was previously down, generate recovery alert
 		if previousStatus == "offline" {
 			m.generateAlert(monitor, AlertLevelInfo, "Server recovered", "Server is back online")
@@ -228,7 +228,9 @@ func (m *MCPMonitor) performHealthCheck(ctx context.Context, monitor *common.Ser
 	}
 
 	// Store result in database
-	m.storeHealthCheckResult(result)
+	if err := m.storeHealthCheckResult(result); err != nil {
+		m.logger.Error("Failed to store health check result", zap.Error(err))
+	}
 
 	// Check for performance alerts
 	m.checkPerformanceAlerts(monitor)
@@ -286,13 +288,13 @@ func (m *MCPMonitor) performDetailedCheck(ctx context.Context, monitor *common.S
 func (m *MCPMonitor) checkPerformanceAlerts(monitor *common.ServerMonitor) {
 	// Alert if response time is too high
 	if monitor.ResponseTime > 5*time.Second {
-		m.generateAlert(monitor, AlertLevelWarning, "High response time", 
+		m.generateAlert(monitor, AlertLevelWarning, "High response time",
 			fmt.Sprintf("Response time: %v", monitor.ResponseTime))
 	}
 
 	// Alert if uptime is low
 	if monitor.Metrics.UptimePercentage < 95.0 && monitor.Metrics.TotalRequests > 10 {
-		m.generateAlert(monitor, AlertLevelWarning, "Low uptime", 
+		m.generateAlert(monitor, AlertLevelWarning, "Low uptime",
 			fmt.Sprintf("Uptime: %.2f%%", monitor.Metrics.UptimePercentage))
 	}
 
@@ -300,7 +302,7 @@ func (m *MCPMonitor) checkPerformanceAlerts(monitor *common.ServerMonitor) {
 	if monitor.Metrics.TotalRequests > 0 {
 		errorRate := float64(monitor.Metrics.FailedRequests) / float64(monitor.Metrics.TotalRequests) * 100
 		if errorRate > 10.0 {
-			m.generateAlert(monitor, AlertLevelCritical, "High error rate", 
+			m.generateAlert(monitor, AlertLevelCritical, "High error rate",
 				fmt.Sprintf("Error rate: %.2f%%", errorRate))
 		}
 	}
@@ -350,7 +352,6 @@ func (m *MCPMonitor) storeHealthCheckResult(result *HealthCheckResult) error {
 
 	_, err := m.db.Exec(query, result.ServerID, result.Status, responseTimeMs, errorMsg, result.Timestamp)
 	if err != nil {
-		m.logger.Error("Failed to store health check result", zap.Error(err))
 		return err
 	}
 
@@ -362,10 +363,6 @@ func (m *MCPMonitor) storeHealthCheckResult(result *HealthCheckResult) error {
 	`
 
 	_, err = m.db.Exec(updateQuery, result.Status, result.Timestamp, responseTimeMs, result.ServerID)
-	if err != nil {
-		m.logger.Error("Failed to update server status", zap.Error(err))
-	}
-
 	return err
 }
 
@@ -381,12 +378,12 @@ func (m *MCPMonitor) storeAlert(alert *Alert) error {
 	}
 	metadataJSON, _ := json.Marshal(metadata)
 
-	_, err := m.db.Exec(query, 
-		alert.ID, 
-		alert.ServerID, 
-		"monitoring", 
-		string(alert.Level), 
-		alert.Message, 
+	_, err := m.db.Exec(query,
+		alert.ID,
+		alert.ServerID,
+		"monitoring",
+		string(alert.Level),
+		alert.Message,
 		alert.Details,
 		metadataJSON,
 		alert.Timestamp,

@@ -28,7 +28,9 @@ import (
 func main() {
 	// Initialize logger
 	logger, _ := zap.NewProduction()
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	// Load configuration
 	cfg, err := config.Load()
@@ -163,8 +165,9 @@ func main() {
 	mcpRepo := repository.NewMCPRepositoryAdapter(repo)
 	mcpHandler := mcp.NewHandler(logger, mcpRepo)
 	mcpHandler.RegisterRoutes(mcpGroup)
-	discoverySvc := discovery.NewMCPDiscoveryService(logger)
-	monitorSvc := monitoring.NewMCPMonitor(dbConn.DB.DB, logger, nil)
+	mcpProtocol := mcp.NewMCPProtocol(logger)
+	discoverySvc := discovery.NewMCPDiscoveryService(logger, mcpProtocol)
+	monitorSvc := monitoring.NewMCPMonitor(dbConn.DB.DB, logger, mcpProtocol)
 	enhancedHandler := mcp.NewEnhancedHandler(dbConn.DB.DB, logger, discoverySvc, monitorSvc)
 	enhancedHandler.RegisterEnhancedRoutes(mcpGroup)
 
@@ -237,7 +240,7 @@ func main() {
 
 			// Discovery endpoints (including endpoint scanning)
 			// Endpoint scanning doesn't require repository, so we pass nil
-			discoveryHandler := discovery.NewDiscoveryHandler(logger, nil)
+			discoveryHandler := discovery.NewDiscoveryHandler(logger, mcpProtocol, nil)
 			discoveryHandler.RegisterRoutes(protected)
 		}
 	}

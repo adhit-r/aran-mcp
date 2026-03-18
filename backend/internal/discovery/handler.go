@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
 	"go.uber.org/zap"
 )
 
@@ -15,10 +16,10 @@ type DiscoveryHandler struct {
 	endpointScanner  *EndpointScanner
 }
 
-func NewDiscoveryHandler(logger *zap.Logger, repo interface{}) *DiscoveryHandler {
+func NewDiscoveryHandler(logger *zap.Logger, protocol common.MCPProtocolService, repo interface{}) *DiscoveryHandler {
 	// Create endpoint scanner for endpoint scanning
-	endpointScanner := NewEndpointScanner(logger)
-	
+	endpointScanner := NewEndpointScanner(logger, protocol)
+
 	// Discovery service is optional - endpoint scanning doesn't require it
 	// We'll create it as nil since we're not using it for endpoint scanning endpoints
 	return &DiscoveryHandler{
@@ -36,7 +37,7 @@ func (h *DiscoveryHandler) RegisterRoutes(router *gin.RouterGroup) {
 		discoveryGroup.GET("/status", h.GetDiscoveryStatus)
 		discoveryGroup.POST("/start-periodic", h.StartPeriodicDiscovery)
 		discoveryGroup.POST("/stop-periodic", h.StopPeriodicDiscovery)
-		
+
 		// Endpoint scanning routes
 		discoveryGroup.POST("/endpoint/scan", h.ScanEndpoint)
 		discoveryGroup.POST("/endpoint/scan-multiple", h.ScanMultipleEndpoints)
@@ -198,8 +199,8 @@ func (h *DiscoveryHandler) ScanEndpoint(c *gin.Context) {
 
 // ScanMultipleEndpointsRequest represents the request to scan multiple endpoints
 type ScanMultipleEndpointsRequest struct {
-	URLs         []string `json:"urls" binding:"required"`
-	MaxConcurrent int     `json:"max_concurrent,omitempty"`
+	URLs          []string `json:"urls" binding:"required"`
+	MaxConcurrent int      `json:"max_concurrent,omitempty"`
 }
 
 // ScanMultipleEndpoints scans multiple endpoints concurrently
@@ -224,7 +225,7 @@ func (h *DiscoveryHandler) ScanMultipleEndpoints(c *gin.Context) {
 		zap.Int("results", len(results)))
 
 	c.JSON(http.StatusOK, gin.H{
-		"results":      results,
+		"results":       results,
 		"total_scanned": len(req.URLs),
 		"total_found":   len(results),
 	})
@@ -287,11 +288,10 @@ func (h *DiscoveryHandler) ScanPortRange(c *gin.Context) {
 		zap.Int("mcp_servers_found", len(mcpServers)))
 
 	c.JSON(http.StatusOK, gin.H{
-		"results":        results,
-		"mcp_servers":    mcpServers,
-		"total_ports":     req.EndPort - req.StartPort + 1,
-		"reachable":      len(results),
+		"results":           results,
+		"mcp_servers":       mcpServers,
+		"total_ports":       req.EndPort - req.StartPort + 1,
+		"reachable":         len(results),
 		"mcp_servers_count": len(mcpServers),
 	})
 }
-

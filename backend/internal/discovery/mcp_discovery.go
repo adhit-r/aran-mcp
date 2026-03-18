@@ -9,23 +9,22 @@ import (
 	"time"
 
 	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
 	"go.uber.org/zap"
 )
 
 // MCPDiscoveryService handles automatic discovery of MCP servers
 type MCPDiscoveryService struct {
 	logger   *zap.Logger
-	protocol *mcp.MCPProtocol
+	protocol common.MCPProtocolService
 	mu       sync.RWMutex
 	servers  map[string]*common.DiscoveredServer
 }
 
 // NewMCPDiscoveryService creates a new MCP discovery service
-func NewMCPDiscoveryService(logger *zap.Logger) *MCPDiscoveryService {
+func NewMCPDiscoveryService(logger *zap.Logger, protocol common.MCPProtocolService) *MCPDiscoveryService {
 	return &MCPDiscoveryService{
 		logger:   logger,
-		protocol: mcp.NewMCPProtocol(logger),
+		protocol: protocol,
 		servers:  make(map[string]*common.DiscoveredServer),
 	}
 }
@@ -293,7 +292,7 @@ func (d *MCPDiscoveryService) DiscoverFromEnvironment() []*common.DiscoveredServ
 
 	var servers []*common.DiscoveredServer
 
-	for _, _ = range envVars {
+	for range envVars {
 		// This would be implemented to read from environment
 		// For now, return empty slice
 	}

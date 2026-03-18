@@ -30,7 +30,7 @@ type Connection struct {
 func NewConnection(cfg Config, logger *zap.Logger) (*Connection, error) {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode)
-	
+
 	logger.Info("Database connection string", zap.String("dsn", dsn))
 
 	db, err := sqlx.Connect("postgres", dsn)
@@ -84,7 +84,7 @@ func (c *Connection) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 }
 
 // WithTx executes a function within a transaction
-func (c *Connection) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error {
+func (c *Connection) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) (err error) {
 	tx, err := c.BeginTx(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -92,12 +92,19 @@ func (c *Connection) WithTx(ctx context.Context, fn func(*sqlx.Tx) error) error 
 
 	defer func() {
 		if p := recover(); p != nil {
-			tx.Rollback()
+			_ = tx.Rollback()
 			panic(p)
-		} else if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
+		}
+
+		if err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				err = fmt.Errorf("transaction rollback failed: %v; original error: %w", rbErr, err)
+			}
+			return
+		}
+
+		if commitErr := tx.Commit(); commitErr != nil {
+			err = commitErr
 		}
 	}()
 

@@ -11,22 +11,21 @@ import (
 	"time"
 
 	"github.com/radhi1991/aran-mcp-sentinel/internal/common"
-	"github.com/radhi1991/aran-mcp-sentinel/internal/mcp"
 	"go.uber.org/zap"
 )
 
 // EndpointScanner performs comprehensive endpoint scanning and analysis
 type EndpointScanner struct {
 	logger   *zap.Logger
-	protocol *mcp.MCPProtocol
+	protocol common.MCPProtocolService
 	client   *http.Client
 }
 
 // NewEndpointScanner creates a new endpoint scanner
-func NewEndpointScanner(logger *zap.Logger) *EndpointScanner {
+func NewEndpointScanner(logger *zap.Logger, protocol common.MCPProtocolService) *EndpointScanner {
 	return &EndpointScanner{
 		logger:   logger,
-		protocol: mcp.NewMCPProtocol(logger),
+		protocol: protocol,
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -41,7 +40,7 @@ type ScanResult struct {
 	ResponseTime     time.Duration          `json:"response_time"`
 	HTTPStatus       int                    `json:"http_status,omitempty"`
 	Version          string                 `json:"version,omitempty"`
-	Capabilities     common.MCPCapabilities  `json:"capabilities,omitempty"`
+	Capabilities     common.MCPCapabilities `json:"capabilities,omitempty"`
 	ServerInfo       *common.MCPServerInfo  `json:"server_info,omitempty"`
 	Tools            []common.MCPTool       `json:"tools,omitempty"`
 	Resources        []common.MCPResource   `json:"resources,omitempty"`
@@ -196,7 +195,7 @@ func (s *EndpointScanner) scanHTTPEndpoint(ctx context.Context, url string) HTTP
 
 	// Try common MCP endpoints
 	endpoints := []string{"", "/", "/health", "/status", "/api", "/mcp", "/api/v1/health"}
-	
+
 	for _, endpoint := range endpoints {
 		testURL := url + endpoint
 		req, err := http.NewRequestWithContext(ctx, "GET", testURL, nil)
@@ -213,7 +212,7 @@ func (s *EndpointScanner) scanHTTPEndpoint(ctx context.Context, url string) HTTP
 		if info.StatusCode == 0 && resp.StatusCode < 500 {
 			info.StatusCode = resp.StatusCode
 			info.ResponseTime = time.Since(startTime)
-			
+
 			// Extract headers
 			for key, values := range resp.Header {
 				if len(values) > 0 {
@@ -393,4 +392,3 @@ func (s *EndpointScanner) ScanPortRange(ctx context.Context, host string, startP
 	wg.Wait()
 	return results
 }
-

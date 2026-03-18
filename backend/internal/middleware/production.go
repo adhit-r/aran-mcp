@@ -28,8 +28,8 @@ func NewProductionMiddleware(logger *zap.Logger) *ProductionMiddleware {
 func (pm *ProductionMiddleware) APIKeyAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Skip auth for health check and public endpoints
-		if c.Request.URL.Path == "/health" || 
-		   strings.HasPrefix(c.Request.URL.Path, "/api/v1/auth/") {
+		if c.Request.URL.Path == "/health" ||
+			strings.HasPrefix(c.Request.URL.Path, "/api/v1/auth/") {
 			c.Next()
 			return
 		}
@@ -44,7 +44,7 @@ func (pm *ProductionMiddleware) APIKeyAuth() gin.HandlerFunc {
 		}
 
 		if apiKey == "" {
-			pm.logger.Warn("Missing API key", 
+			pm.logger.Warn("Missing API key",
 				zap.String("ip", c.ClientIP()),
 				zap.String("path", c.Request.URL.Path),
 			)
@@ -63,7 +63,7 @@ func (pm *ProductionMiddleware) APIKeyAuth() gin.HandlerFunc {
 		}
 
 		if subtle.ConstantTimeCompare([]byte(apiKey), []byte(validKey)) != 1 {
-			pm.logger.Warn("Invalid API key", 
+			pm.logger.Warn("Invalid API key",
 				zap.String("ip", c.ClientIP()),
 				zap.String("path", c.Request.URL.Path),
 			)
@@ -89,7 +89,7 @@ func (pm *ProductionMiddleware) RequestTimeout(timeout time.Duration) gin.Handle
 		defer cancel()
 
 		c.Request = c.Request.WithContext(ctx)
-		
+
 		done := make(chan struct{})
 		go func() {
 			c.Next()
@@ -117,15 +117,17 @@ func (pm *ProductionMiddleware) RequestTimeout(timeout time.Duration) gin.Handle
 func (pm *ProductionMiddleware) AuditLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		
+
 		// Capture request body for audit (be careful with sensitive data)
 		var requestBody interface{}
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" {
 			if c.GetHeader("Content-Type") == "application/json" {
 				// Only log non-sensitive endpoints
 				if !strings.Contains(c.Request.URL.Path, "auth") &&
-				   !strings.Contains(c.Request.URL.Path, "password") {
-					c.ShouldBindJSON(&requestBody)
+					!strings.Contains(c.Request.URL.Path, "password") {
+					if err := c.ShouldBindJSON(&requestBody); err != nil {
+						pm.logger.Debug("Failed to bind request body for audit", zap.Error(err))
+					}
 				}
 			}
 		}
@@ -134,7 +136,7 @@ func (pm *ProductionMiddleware) AuditLogger() gin.HandlerFunc {
 
 		// Log after request completion
 		duration := time.Since(start)
-		
+
 		auditLog := map[string]interface{}{
 			"timestamp":     start.Format(time.RFC3339),
 			"method":        c.Request.Method,
@@ -205,11 +207,11 @@ func (pm *ProductionMiddleware) HealthCheck() gin.HandlerFunc {
 			"uptime":    time.Since(time.Now()).String(), // This would be calculated from app start
 			"checks": map[string]interface{}{
 				"database": map[string]interface{}{
-					"status": "healthy",
+					"status":  "healthy",
 					"latency": "5ms",
 				},
 				"redis": map[string]interface{}{
-					"status": "healthy",
+					"status":  "healthy",
 					"latency": "2ms",
 				},
 				"mcp_servers": map[string]interface{}{
@@ -232,7 +234,7 @@ func (pm *ProductionMiddleware) ErrorHandler() gin.HandlerFunc {
 		// Handle any errors that occurred during request processing
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last()
-			
+
 			pm.logger.Error("Request error",
 				zap.String("path", c.Request.URL.Path),
 				zap.Error(err),
@@ -279,9 +281,9 @@ func (pm *ProductionMiddleware) MetricsCollector() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
-		
+
 		duration := time.Since(start)
-		
+
 		// In production, you'd send these to Prometheus/Grafana
 		pm.logger.Debug("Request metrics",
 			zap.String("method", c.Request.Method),
