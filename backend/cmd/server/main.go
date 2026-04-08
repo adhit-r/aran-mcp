@@ -245,6 +245,10 @@ func main() {
 			webhookService := webhook.NewService(dbConn.DB, logger)
 			webhookHandler := webhook.NewHandler(webhookService, logger)
 			webhookHandler.RegisterRoutes(protected)
+
+			// Search and filtering endpoints
+			searchHandler := database.NewSearchHandler(repo, logger)
+			database.RegisterSearchRoutes(protected, searchHandler)
 		}
 	}
 
